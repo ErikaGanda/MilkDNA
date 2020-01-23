@@ -1,0 +1,19 @@
+"Treatment"	"Parameter"	"mean_percent"	"st_dev"	"n_missing"	"n_total"
+"1"	"0uM"	"Low quality (QC filtered)"	3.09	0.384317577011513	0	3
+"2"	"0uM"	"Matrix"	93.83	0.366606055596466	0	3
+"3"	"0uM"	"Microbial"	0.0116666666666667	0.0055075705472861	0	3
+"4"	"0uM"	"PhiX (QC filtered)"	0	0	0	3
+"5"	"0uM"	"Total Input Reads"	100	0	0	3
+"6"	"0uM"	"Unclassified"	3.06666666666667	0.0404145188432738	0	3
+"7"	"20uM"	"Low quality (QC filtered)"	4.31	0.851058164874763	0	3
+"8"	"20uM"	"Matrix"	92.4633333333333	0.86673717661892	0	3
+"9"	"20uM"	"Microbial"	0.109333333333333	0.0277908857961263	0	3
+"10"	"20uM"	"PhiX (QC filtered)"	0	0	0	3
+"11"	"20uM"	"Total Input Reads"	100	0	0	3
+"12"	"20uM"	"Unclassified"	3.11333333333333	0.110151410945722	0	3
+"13"	"NTC"	"Low quality (QC filtered)"	3.18	0.441701256507155	0	3
+"14"	"NTC"	"Matrix"	93.8766666666667	0.540771054452184	0	3
+"15"	"NTC"	"Microbial"	0.0103333333333333	0.00208166599946613	0	3
+"16"	"NTC"	"PhiX (QC filtered)"	0	0	0	3
+"17"	"NTC"	"Total Input Reads"	100	0	0	3
+"18"	"NTC"	"Unclassified"	2.93333333333333	0.122202018532156	0	3
