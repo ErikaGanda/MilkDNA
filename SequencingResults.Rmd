@@ -16,12 +16,12 @@ SeqData <- read.csv("SequencingResults.csv", fill = TRUE, header=TRUE)
 dim (SeqData)
 
 #Summary Statistics
-Summary <- SeqData %>%
+SequencingSummary <- SeqData %>%
   group_by(Treatment, Parameter) %>%
   summarize(mean_percent=mean(Percent,na.rm=T),
             st_dev=sd(Percent,na.rm=T),
             n_missing=sum(is.na(Percent)),
             n_total=n())
-write.table (Summary, "Summary.txt", sep="\t" )
+write.table (SequencingSummary, "Summary.txt", sep="\t" )
 ```
 
