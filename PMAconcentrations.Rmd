@@ -1,0 +1,47 @@
+---
+title: "PMA concentration optimization"
+author: "ErikaGanda"
+output: html_document
+---
+```{r}
+#Data File: DNAconcentrations
+library(ggplot2)
+library(dplyr)
+library(emmeans)
+library(multcompView)
+
+#Read Data
+PMAData <- read.table("PMAconcentration.txt", sep="\t",  fill = TRUE, header=TRUE)
+dim (PMAData)
+
+#Getting All variables and all levels within each
+
+#Summary Statistics
+PMAConc.summary <- PMAData %>%
+  group_by(ConcentrationCAT,Target.Name) %>%
+  summarize(mean_LogCopiesmLmilk=mean(caclLogCopiesmLmilk,na.rm=T),
+            st_dev=sd(caclLogCopiesmLmilk,na.rm=T),
+            n_missing=sum(is.na(caclLogCopiesmLmilk)),
+            n_total=n())
+write.table (PMAConc.summary, "PMAConc.summary.txt", sep="\t" ) 
+
+PMAPlot <- ggplot(data=PMAData, aes(x=ConcentrationCAT,y=caclLogCopiesmLmilk))
+PMAPlot + geom_boxplot() + 
+  geom_dotplot(binaxis='y', 
+               stackdir='center', 
+               dotsize = .5) +
+  theme_bw()+
+  aes(colour=factor(Target.Name))+
+  facet_wrap(vars(Target.Name))+
+  scale_colour_manual(values = c("black", "blue"))+
+  theme(legend.title=element_blank())+
+  xlab("PMA Concentration")+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=65,vjust=0.5))+
+  ylim(2, 6.5)+
+  scale_x_discrete(limits=c("NTC","0uM","10uM","20uM","40uM","50uM"))
+```
