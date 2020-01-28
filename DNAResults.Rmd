@@ -1,0 +1,2023 @@
+---
+title: "DNA Prep qPCR Data Analysis"
+author: "ErikaGanda"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+#Data File: CleanDNAprepData1.18.19
+library(ggplot2)
+library(dplyr)
+library(emmeans)
+library(multcompView)
+
+#Read Data
+AllData <- read.table("CleanDNAprepData1.18.19.txt", sep="\t",  fill = TRUE, header=TRUE)
+SampleData <- AllData %>% filter(VariableSampleType!="Standard")
+dim (SampleData)
+
+write.table (SampleData, "SampleData.txt", sep="\t" )
+
+#Getting All variables and all levels within each
+
+#sapply(SampleData, levels)
+#SampleData %>% 
+#    sapply(levels)
+
+#Summary Statistics
+SampleData.summary <- SampleData %>%
+  group_by(Assay,VariableKit,VariableSampleType) %>%
+  summarize(mean_CopyN_permLMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())
+write.table (SampleData.summary, "SampleData.summary.txt", sep="\t" ) 
+```
+
+# Total Bovine Copy Numbers
+```{r}
+
+#Filter Subset from Sample Data
+Bovine <- SampleData %>% filter(Assay=="Bovine DNA")
+dim(Bovine)
+
+#Summary Statistics
+Bovine.summary <- Bovine %>%
+  group_by(VariableKit,VariableSampleType) %>%
+  summarize(mean_CopyN_permLMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())
+write.table (Bovine.summary, "Bovine.summary.txt", sep="\t" )
+```
+
+```{r}
+#Plot Raw Means and Standard Deviations
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2338B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+ggplot(data=Bovine,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk,z=VariableKit, color=VariableKit)) +
+  ylab ("Log10 Copies / mL of Milk")+
+     geom_boxplot(lwd=1)+
+  theme_bw()+
+ ggtitle("Bovine DNA Copy Numbers")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+
+ggplot(data=Bovine,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  ylab ("Log10 Copies / mL of Milk")+
+    geom_jitter(width=0.25)+
+  ggtitle("Bovine DNA Copy Numbers")+
+  theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+
+```
+
+```{r}
+# Inoculated Milk Data
+Bovine.InnOnly <- Bovine %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
+dim(Bovine.InnOnly)
+
+Bovine.InnOnly %>%
+  group_by(VariableKit) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())%>%
+  data.frame()
+####
+Bovine.InnOnly.Summary = Bovine.InnOnly %>%
+  group_by(VariableKit) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())%>%
+  data.frame()
+
+write.table (Bovine.InnOnly.Summary, "BovineInnOnly.summary.txt", sep="\t" )
+
+write.table (Bovine.InnOnly, "BovineInnOnly.txt", sep="\t" )
+ 
+
+Bovine.InnOnly %>%
+  group_by(SpikeSet, VariableKit) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())%>%
+  data.frame()
+
+
+ggplot(data=Bovine.InnOnly,
+       mapping=aes(x=VariableKit,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  ylab ("Log10 Copies / mL of Milk")+
+  xlab ("Kit")+
+    geom_jitter(width=0.25)+
+  ggtitle("Bovine DNA Copy Numbers - Inoculated Milk Only")+
+  theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+```
+
+```{r}
+# Model Selection
+
+#3 linear models were compared: including SpikeSet only, qPCRefficiency only, and both as covariates. Best model fit was used as the final model. 
+
+# Model 1 - VariableKit + SpikeSet
+m_Bovine.LogCopiespermLofMilk1 <- lm( LogCopiespermLofMilk ~ VariableKit + SpikeSet, data=Bovine.InnOnly )
+summary(m_Bovine.LogCopiespermLofMilk1)
+
+# Model 2 - VariableKit + qPCRefficiency
+m_Bovine.LogCopiespermLofMilk2 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency, data=Bovine.InnOnly )
+summary(m_Bovine.LogCopiespermLofMilk2)
+
+# Model 3 - VariableKit + qPCRefficiency + SpikeSet
+m_Bovine.LogCopiespermLofMilk3 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Bovine.InnOnly )
+summary(m_Bovine.LogCopiespermLofMilk3)
+
+anova(m_Bovine.LogCopiespermLofMilk1, m_Bovine.LogCopiespermLofMilk2)
+# Model with qPCRefficiency does not have better fit than model with SpikeSet
+
+anova(m_Bovine.LogCopiespermLofMilk2, m_Bovine.LogCopiespermLofMilk3)
+# Model with both qPCRefficiency and SpikeSet does not have better fit than model with qPCRefficiency only
+
+anova(m_Bovine.LogCopiespermLofMilk1, m_Bovine.LogCopiespermLofMilk3)
+# Model with both qPCRefficiency and SpikeSet does not have better fit than model with SpikeSet only
+
+# Fit of model with both qPCRefficiency and SpikeSet is not different from fit of model with SpikeSet only
+anova(m_Bovine.LogCopiespermLofMilk1, m_Bovine.LogCopiespermLofMilk2, m_Bovine.LogCopiespermLofMilk3)
+
+AIC (m_Bovine.LogCopiespermLofMilk1)
+AIC (m_Bovine.LogCopiespermLofMilk2)
+AIC (m_Bovine.LogCopiespermLofMilk3)
+
+# Final model chosen:
+# Model 1: LogCopiespermLofMilk ~ VariableKit + SpikeSet
+```
+## Final Model
+
+```{r}
+# Fit Linear Model
+
+m_Bovine.LogCopiespermLofMilk <- lm( LogCopiespermLofMilk ~ VariableKit + SpikeSet, data=Bovine.InnOnly )
+summary(m_Bovine.LogCopiespermLofMilk)
+
+# Model Fit Plots
+
+plot(x=predict(m_Bovine.LogCopiespermLofMilk),y=resid(m_Bovine.LogCopiespermLofMilk), col=Bovine.InnOnly$VariableKit)
+  
+  # using ggplot2
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+
+ggplot(m_Bovine.LogCopiespermLofMilk, aes(x=predict(m_Bovine.LogCopiespermLofMilk), y=resid(m_Bovine.LogCopiespermLofMilk), color=VariableKit)) +
+  geom_point()+
+  theme_bw()+
+  ggtitle("Bovine Innoculated Only - Model Fit - Residuals vs Predicted")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  geom_hline(yintercept = 1) +
+  geom_hline(yintercept = -1)
+
+  # qqplots
+qqnorm(resid(m_Bovine.LogCopiespermLofMilk),col=Bovine.InnOnly$VariableKit)
+qqline(resid(m_Bovine.LogCopiespermLofMilk))
+
+summary(m_Bovine.LogCopiespermLofMilk)
+
+#Almost all residuals are < 1. 
+#Exceptions are:
+
+Bovine.InnOnly$resid <- resid(m_Bovine.LogCopiespermLofMilk)
+Bovine.InnOnly %>% 
+  filter(abs(resid)>1) %>%
+  select(VariableKit,resid) %>%
+  group_by(VariableKit) %>%
+  summarize(n=n())
+
+```
+
+```{r}
+library(emmeans)
+# Check Tukey-adjusted pairwise comparison of kit estimates
+m_Bovine.LogCopiespermLofMilk_emmeans <- emmeans(m_Bovine.LogCopiespermLofMilk,pairwise~VariableKit)
+# Use compact letter display for convenience
+m_Bovine.LogCopiespermLofMilk_cld <- CLD(m_Bovine.LogCopiespermLofMilk_emmeans$emmeans,
+                         Letters=LETTERS)
+m_Bovine.LogCopiespermLofMilk_cld
+m_Bovine.LogCopiespermLofMilk_cld_detail <- CLD(m_Bovine.LogCopiespermLofMilk_emmeans$emmeans, sort=TRUE, details=TRUE, Letters=LETTERS)
+m_Bovine.LogCopiespermLofMilk_cld_detail
+
+# Get fitted values from model to plot with other software
+emmeans(m_Bovine.LogCopiespermLofMilk,~ VariableKit) %>%
+  summary() %>%
+  data.frame() 
+
+# Get summary
+summary(emmeans(m_Bovine.LogCopiespermLofMilk,~ VariableKit), infer=TRUE)
+
+# Plot fitted values from model
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+emmeans(m_Bovine.LogCopiespermLofMilk,~VariableKit) %>%
+  summary() %>%
+  data.frame() %>%
+
+  ggplot(aes(x=VariableKit,y=emmean,color=VariableKit)) +
+  geom_point() +
+  labs(y="Estimated Marginal Means") +
+  geom_errorbar(aes(ymin=lower.CL,ymax=upper.CL),width=0.5) +
+  geom_text(data =data.frame(m_Bovine.LogCopiespermLofMilk_cld),aes(x=VariableKit,label=`.group`),hjust=-.1) +
+ ylim(3.5, 8.5)+
+  theme_bw()+
+ ggtitle("Bovine Copy Numbers - Inoculated Milk Only")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+```
+
+### Bovine InnOnly Raw Data + Final Model Output
+```{r}
+
+df1_Bovine.rawdata<-Bovine.InnOnly[c(25,42,4)]
+
+df2_Bovine.model<-emmeans(m_Bovine.LogCopiespermLofMilk,~VariableKit) %>%
+  summary() %>%
+  data.frame()
+
+ggplot() +
+  geom_jitter(data=df1_Bovine.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk)) +
+  geom_point(data=df2_Bovine.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_errorbar(data=df2_Bovine.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)
+  
+# Making the plot pretty
+
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+  
+ggplot() +
+  geom_jitter(data=df1_Bovine.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk,color=VariableKit, shape=SpikeSet)) +
+  scale_color_manual(values=Colors)+
+  geom_point(data=df2_Bovine.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_errorbar(data=df2_Bovine.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)+  
+  geom_text(data =data.frame(m_Bovine.LogCopiespermLofMilk_cld),aes(x=VariableKit,label=`.group`, y=emmean),hjust=-.5) +
+ylim(3.5, 6.5)+
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Bovine Copy Numbers - Inoculated Milk Only")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+```
+
+## Bovine - Model not assuming homoscedasticity and simpler model
+
+```{r}
+# from https://cran.r-project.org/web/packages/emmeans/vignettes/FAQs.html#contents
+
+library(nlme)
+# lm chosen: m_Bovine.LogCopiespermLofMilk <- lm( LogCopiespermLofMilk ~ VariableKit + SpikeSet, data=Bovine.InnOnly )
+
+mod.Bovine = nlme::gls(LogCopiespermLofMilk ~ VariableKit + SpikeSet, data = Bovine.InnOnly,
+                 weights = varIdent(form = ~1 | VariableKit))
+summary(mod.Bovine)
+
+AIC(mod.Bovine)
+
+# Testing simpler model
+
+mod3 = nlme::gls(LogCopiespermLofMilk ~ VariableKit, data = Bovine.InnOnly,
+                 weights = varIdent(form = ~1 | VariableKit))
+summary(mod3)
+
+AIC(mod.Bovine)
+AIC(mod3) #mod3 is best model
+
+AIC (m_Bovine.LogCopiespermLofMilk)
+AIC (mod3)
+summary(mod3)
+summary(m_Bovine.LogCopiespermLofMilk)
+#mod3 not assuming homoscedasticity is a much better fit than any of the alternatives
+
+  # qqplots
+qqnorm(resid(m_Bovine.LogCopiespermLofMilk, col=Bovine.InnOnly$VariableKit))
+qqline(resid(m_Bovine.LogCopiespermLofMilk))
+
+
+qqnorm(resid(mod3, col=Bovine.InnOnly$VariableKit))
+qqline(resid(mod3))
+
+```
+
+### Final Bovine Figure
+```{r}
+
+# Check Tukey-adjusted pairwise comparison of kit estimates
+mod3_emmeans <- emmeans(mod3,pairwise~VariableKit)
+# Use compact letter display for convenience
+mod3_cld <- CLD(mod3_emmeans$emmeans, sort=TRUE, details=TRUE, Letters=LETTERS)
+mod3_cld_letters <- CLD(mod3_emmeans$emmeans, Letters=LETTERS)
+mod3_cld
+
+# Get fitted values from model to plot with other software
+emmeans(mod3,~ VariableKit) %>%
+  summary() %>%
+  data.frame() 
+
+# Get summary
+summary(emmeans(mod3,~ VariableKit), infer=TRUE)
+
+# Plot overlaying model estimates to raw data
+mod3df1_Bovine.rawdata<-Bovine.InnOnly[c(25,42,4)]
+
+mod3df2_Bovine.model<-emmeans(mod3,~VariableKit) %>%
+  summary() %>%
+  data.frame()
+
+ggplot() +
+  geom_jitter(data=mod3df1_Bovine.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk)) +
+  geom_point(data=mod3df2_Bovine.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_errorbar(data=mod3df2_Bovine.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)
+
+# Making the plot pretty
+
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+  
+ggplot() +
+  geom_jitter(data=mod3df1_Bovine.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk,color=VariableKit, shape=SpikeSet)) +
+  scale_color_manual(values=Colors)+
+  geom_errorbar(data=mod3df2_Bovine.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.3)+  
+  geom_point(data=mod3df2_Bovine.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_text(data =data.frame(mod3_cld_letters),aes(x=VariableKit,label=`.group`, y=emmean), nudge_y = 0.2, nudge_x = -0.05, fontface = "bold") +
+ylim(3.5, 6.5)+
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Bovine Copy Numbers - Inoculated Milk Only - Not assuming homoscedasticity ")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+```
+
+# Total Bacterial DNA Copy Numbers
+```{r}
+#Data File: CleanDNAprepData1.18.19
+library(ggplot2)
+library(dplyr)
+library(emmeans)
+library(multcompView)
+
+#Filter Subset from Sample Data
+TotalBacterialDNA <- SampleData %>% filter(Assay=="Total Bacterial DNA")
+dim(TotalBacterialDNA)
+
+#Summary Statistics
+
+TotalBacterialDNA.summary <- TotalBacterialDNA %>%
+  group_by(VariableKit,VariableSampleType) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())%>%
+  data.frame()
+  
+write.table (TotalBacterialDNA.summary, "TotalBacterialDNA.summary.txt", sep="\t" )
+```
+
+```{r}
+#Plot Raw Means and Standard Deviations
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+ggplot(data=TotalBacterialDNA,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk,z=VariableKit, color=VariableKit, ylab="Copy Numbers")) +
+  ylab ("Log10 Copies / mL of Milk")+
+  geom_boxplot(lwd=1)+
+  theme_bw()+
+  ggtitle("TotalBacterialDNA Copy Numbers")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+
+
+
+ggplot(data=TotalBacterialDNA,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  ylab ("Log10 Copies / mL of Milk")+
+      geom_jitter(width=0.25)+
+  ggtitle("TotalBacterialDNA Copy Numbers")+
+  theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+
+
+ggplot(data=TotalBacterialDNA,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk, color=SpikeSet, shape=VariableKit)) +
+  ylab ("Log10 Copies / mL of Milk")+
+    geom_jitter(width=0.35)+
+  ggtitle("TotalBacterialDNA Copy Numbers")+
+  theme_bw()+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+```
+
+```{r}
+# Inoculated Milk Data
+TotalBacterialDNA.InnOnly <- TotalBacterialDNA %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
+TotalBacterialDNA.InnOnly %>%
+  group_by(VariableSampleType, VariableSpikeSet, VariableKit) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())%>%
+  data.frame()
+```
+## Model Selection
+### Linear Models
+```{r}
+#3 linear models were compared: including SpikeSet only, qPCRefficiency only, and both as covariates. Best model fit was used as the final model. 
+m_TotalBacterialDNA.LogCopiespermLofMilk1 <- lm( LogCopiespermLofMilk ~ VariableKit + SpikeSet, data=TotalBacterialDNA.InnOnly )
+summary(m_TotalBacterialDNA.LogCopiespermLofMilk1)
+
+m_TotalBacterialDNA.LogCopiespermLofMilk2 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency, data=TotalBacterialDNA.InnOnly )
+summary(m_TotalBacterialDNA.LogCopiespermLofMilk2)
+
+m_TotalBacterialDNA.LogCopiespermLofMilk3 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=TotalBacterialDNA.InnOnly )
+summary(m_TotalBacterialDNA.LogCopiespermLofMilk3)
+
+anova(m_TotalBacterialDNA.LogCopiespermLofMilk1, m_TotalBacterialDNA.LogCopiespermLofMilk2, m_TotalBacterialDNA.LogCopiespermLofMilk3)
+# Model with qPCRefficiency does not have better fit than model with SpikeSet
+
+AIC(m_TotalBacterialDNA.LogCopiespermLofMilk1)
+AIC(m_TotalBacterialDNA.LogCopiespermLofMilk2)
+AIC(m_TotalBacterialDNA.LogCopiespermLofMilk3)
+
+# Final model chosen:
+# Model 1: LogCopiespermLofMilk ~ VariableKit + SpikeSet
+# No ddifference in fit, simplest model chosen
+```
+
+### Mixed effects models - for reference - AIC of linear models is smaller
+```{r}
+library(lme4)
+library(lmerTest)
+
+model1 = lmer(LogCopiespermLofMilk ~ VariableKit + (1|SpikeSet),
+            data=TotalBacterialDNA.InnOnly,
+            REML=TRUE)
+summary(model1)
+
+model2 = lmer(LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + (1|SpikeSet),
+            data=TotalBacterialDNA.InnOnly,
+            REML=TRUE)
+summary(model2)
+
+anova(model1, model2)
+AIC (model1)
+AIC (model2)
+```
+
+## Final Model
+
+```{r}
+m_TotalBacterialDNA.LogCopiespermLofMilk <- lm( LogCopiespermLofMilk ~ VariableKit + SpikeSet, data=TotalBacterialDNA.InnOnly )
+summary(m_TotalBacterialDNA.LogCopiespermLofMilk)
+
+
+plot(x=predict(m_TotalBacterialDNA.LogCopiespermLofMilk),y=resid(m_TotalBacterialDNA.LogCopiespermLofMilk), col=TotalBacterialDNA.InnOnly$VariableKit)
+
+  # using ggplot2
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+ 
+ggplot(m_TotalBacterialDNA.LogCopiespermLofMilk, aes(x=predict(m_TotalBacterialDNA.LogCopiespermLofMilk), y=resid(m_TotalBacterialDNA.LogCopiespermLofMilk), color=VariableKit)) +
+  geom_point()+
+  theme_bw()+
+  ggtitle("Total Bacterial DNA Innoculated Only - Model Fit - Residuals vs Predicted")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  geom_hline(yintercept = 1) +
+  geom_hline(yintercept = -1)
+
+  # qqplots
+qqnorm(resid(m_TotalBacterialDNA.LogCopiespermLofMilk, col=TotalBacterialDNA.InnOnly$VariableKit))
+qqline(resid(m_TotalBacterialDNA.LogCopiespermLofMilk))
+summary(m_TotalBacterialDNA.LogCopiespermLofMilk)
+
+#Many large residuals were identified, most belong to EZFood
+
+TotalBacterialDNA.InnOnly$resid <- resid(m_TotalBacterialDNA.LogCopiespermLofMilk)
+TotalBacterialDNA.InnOnly %>% 
+  filter(abs(resid)>1) %>%
+  select(VariableKit,resid) %>%
+  group_by(VariableKit) %>%
+  summarize(n=n())
+
+```
+
+```{r}
+# Check Tukey-adjusted pairwise comparison of kit estimates
+m_TotalBacterialDNA.LogCopiespermLofMilk_emmeans <- emmeans(m_TotalBacterialDNA.LogCopiespermLofMilk,pairwise~VariableKit)
+# Use compact letter display for convenience
+m_TotalBacterialDNA.LogCopiespermLofMilk_cld <- CLD(m_TotalBacterialDNA.LogCopiespermLofMilk_emmeans$emmeans,
+                                         Letters=LETTERS)
+m_TotalBacterialDNA.LogCopiespermLofMilk_cld
+
+# Get fitted values from model to plot with other software
+emmeans(m_TotalBacterialDNA.LogCopiespermLofMilk,~ VariableKit) %>%
+  summary() %>%
+  data.frame() 
+
+# Plot fitted values from model
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+emmeans(m_TotalBacterialDNA.LogCopiespermLofMilk,~VariableKit) %>%
+  summary() %>%
+  data.frame() %>%
+  ggplot(aes(x=VariableKit,y=emmean,color=VariableKit)) +
+  geom_point() +
+  labs(y="Estimated Marginal Means") +
+  geom_errorbar(aes(ymin=lower.CL,ymax=upper.CL),width=0.5) +
+  geom_text(data=data.frame(m_TotalBacterialDNA.LogCopiespermLofMilk_cld),aes(x=VariableKit,label=`.group`),hjust=-.1) +
+ ylim(3.5, 8.5)+
+  theme_bw()+
+  ggtitle("Total 16S Bacterial DNA Copy Numbers - Inoculated Milk Only")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+```
+
+
+
+
+
+
+## TotalBacteria - Model not assuming homoscedasticity and simpler model
+
+```{r}
+# from https://cran.r-project.org/web/packages/emmeans/vignettes/FAQs.html#contents
+
+library(nlme)
+# lm chosen: Model 1: LogCopiespermLofMilk ~ VariableKit + SpikeSet
+
+mod.Bacteria = nlme::gls(LogCopiespermLofMilk ~ VariableKit + SpikeSet, data=TotalBacterialDNA.InnOnly,
+                 weights = varIdent(form = ~1 | VariableKit))
+summary(mod.Bacteria)
+
+AIC(m_TotalBacterialDNA.LogCopiespermLofMilk1)
+AIC(mod.Bacteria)
+
+# Testing simpler model
+
+mod3.Bacteria = nlme::gls(LogCopiespermLofMilk ~ VariableKit, data=TotalBacterialDNA.InnOnly,
+                 weights = varIdent(form = ~1 | VariableKit))
+summary(mod3.Bacteria)
+
+AIC(m_TotalBacterialDNA.LogCopiespermLofMilk1)
+AIC(mod.Bacteria)
+AIC(mod3.Bacteria) #mod.Bacteria is best model (including SpikeSet)
+
+#mod.Bacteria not assuming homoscedasticity and including SpikeSet is a much better fit than any of the alternatives
+
+```
+
+### Final Bacteria Figure
+```{r}
+
+# Check Tukey-adjusted pairwise comparison of kit estimates
+mod.Bacteria_emmeans <- emmeans(mod.Bacteria,pairwise~VariableKit)
+# Use compact letter display for convenience
+mod.Bacteria_cld <- CLD(mod.Bacteria_emmeans$emmeans, sort=TRUE, details=TRUE, Letters=LETTERS)
+mod.Bacteria_cld_letters <- CLD(mod.Bacteria_emmeans$emmeans, Letters=LETTERS)
+mod.Bacteria_cld
+
+# Get fitted values from model to plot with other software
+emmeans(mod.Bacteria,~ VariableKit) %>%
+  summary() %>%
+  data.frame() 
+
+# Get summary
+summary(emmeans(mod.Bacteria,~ VariableKit), infer=TRUE)
+
+# Plot overlaying model estimates to raw data
+mod.Bacteria_df1_Bacteria.rawdata<-TotalBacterialDNA.InnOnly[c(25,42,4)]
+
+mod.Bacteria_df2_Bacteria.model<-emmeans(mod.Bacteria,~VariableKit) %>%
+  summary() %>%
+  data.frame()
+
+ggplot() +
+  geom_jitter(data=mod.Bacteria_df1_Bacteria.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk)) +
+  geom_point(data=mod.Bacteria_df2_Bacteria.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_errorbar(data=mod.Bacteria_df2_Bacteria.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)
+
+# Making the plot pretty
+
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+
+
+ggplot() +
+  geom_jitter(data=mod.Bacteria_df1_Bacteria.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  scale_color_manual(values=Colors)+
+   geom_errorbar(data=mod.Bacteria_df2_Bacteria.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)+
+   geom_point(data=mod.Bacteria_df2_Bacteria.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_text(data =data.frame(mod.Bacteria_cld_letters),aes(x=VariableKit,label=`.group`, y=emmean), nudge_y = 0.2, nudge_x = -0.05, fontface = "bold")+
+ylim(1.5, 8.5)+
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Total Bacteria Copy Numbers - Inoculated Milk Only - Not assuming homoscedasticity ")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+```
+
+
+# Bacillus wiedmannii Copy Numbers
+```{r}
+#Data File: CleanDNAprepData1.18.19
+library(ggplot2)
+library(dplyr)
+library(emmeans)
+library(multcompView)
+
+#Filter Subset from Sample Data
+Bacillus <- SampleData %>% filter(Assay=="Bacillus wiedmannii")
+dim(Bacillus)
+
+#Summary Statistics
+
+Bacillus.summary <- Bacillus %>%
+  group_by(VariableKit,VariableSampleType) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())%>%
+  data.frame()
+  
+write.table (Bacillus.summary, "Bacillus.summary.txt", sep="\t" )
+```
+
+```{r}
+#Plot Raw Means and Standard Deviations
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+ggplot(data=Bacillus,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk,z=VariableKit, color=VariableKit, ylab="Copy Numbers")) +
+  ylab ("Log10 Copies / mL of Milk")+
+  geom_boxplot(lwd=1)+
+  theme_bw()+
+  ggtitle("Bacillus Copy Numbers")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+
+
+
+
+
+ggplot(data=Bacillus,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  ylab ("Log10 Copies / mL of Milk")+
+      geom_jitter(width=0.25)+
+  ggtitle("Bacillus Copy Numbers")+
+  theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+
+ggplot(data=Bacillus,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk, color=SpikeSet, shape=VariableKit)) +
+  ylab ("Log10 Copies / mL of Milk")+
+    geom_jitter(width=0.35)+
+  ggtitle("Bacillus Copy Numbers")+
+  theme_bw()+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+```
+
+```{r}
+# Inoculated Milk Data
+Bacillus.InnOnly <- Bacillus %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
+Bacillus.InnOnly %>%
+  group_by(VariableSampleType, VariableSpikeSet, VariableKit) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())%>%
+  data.frame()
+```
+## Model Selection
+### Linear Models
+```{r}
+#3 linear models were compared: including SpikeSet only, qPCRefficiency only, and both as covariates. Best model fit was used as the final model. 
+
+m_Bacillus.LogCopiespermLofMilk1 <- lm( LogCopiespermLofMilk ~ VariableKit + SpikeSet, data=Bacillus.InnOnly )
+summary(m_Bacillus.LogCopiespermLofMilk1)
+
+m_Bacillus.LogCopiespermLofMilk2 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency, data=Bacillus.InnOnly )
+summary(m_Bacillus.LogCopiespermLofMilk2)
+
+m_Bacillus.LogCopiespermLofMilk3 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Bacillus.InnOnly )
+summary(m_Bacillus.LogCopiespermLofMilk3)
+
+
+# Fit of model with both qPCRefficiency and SpikeSet is slightly better than fit of model with SpikeSet only
+anova(m_Bacillus.LogCopiespermLofMilk1, m_Bacillus.LogCopiespermLofMilk2, m_Bacillus.LogCopiespermLofMilk3)
+
+AIC(m_Bacillus.LogCopiespermLofMilk1)
+AIC(m_Bacillus.LogCopiespermLofMilk2)
+AIC(m_Bacillus.LogCopiespermLofMilk3)
+
+# Final model chosen:
+# Model 3:  LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet
+```
+### Mixed effects models - for reference
+```{r}
+library(lme4)
+library(lmerTest)
+
+model1 = lmer(LogCopiespermLofMilk ~ VariableKit + (1|SpikeSet),
+            data=Bacillus.InnOnly,
+            REML=TRUE)
+summary(model1)
+
+model2 = lmer(LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + (1|SpikeSet),
+            data=Bacillus.InnOnly,
+            REML=TRUE)
+summary(model2)
+
+anova(model1, model2)
+AIC (model1)
+AIC (model2)
+AIC(m_Bacillus.LogCopiespermLofMilk3) #still has better fit
+```
+
+## Final Model
+```{r}
+m_Bacillus.LogCopiespermLofMilk <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Bacillus.InnOnly )
+summary(m_Bacillus.LogCopiespermLofMilk)
+
+
+plot(x=predict(m_Bacillus.LogCopiespermLofMilk),y=resid(m_Bacillus.LogCopiespermLofMilk), col=Bacillus.InnOnly$VariableKit)
+
+  # using ggplot2
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+ 
+ggplot(m_Bacillus.LogCopiespermLofMilk, aes(x=predict(m_Bacillus.LogCopiespermLofMilk), y=resid(m_Bacillus.LogCopiespermLofMilk), color=VariableKit)) +
+  geom_point()+
+  theme_bw()+
+  ggtitle("Bacillus Innoculated Only - Model Fit - Residuals vs Predicted")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  geom_hline(yintercept = 1) +
+  geom_hline(yintercept = -1)
+
+  # qqplots
+qqnorm(resid(m_Bacillus.LogCopiespermLofMilk, col=Bacillus.InnOnly$VariableKit))
+qqline(resid(m_Bacillus.LogCopiespermLofMilk))
+summary(m_Bacillus.LogCopiespermLofMilk)
+
+#Few large residuals were identified, most belong to EZFood
+
+Bacillus.InnOnly$resid <- resid(m_Bacillus.LogCopiespermLofMilk)
+Bacillus.InnOnly %>% 
+  filter(abs(resid)>1) %>%
+  select(VariableKit,resid) %>%
+  group_by(VariableKit) %>%
+  summarize(n=n())
+
+```
+
+```{r}
+# Check Tukey-adjusted pairwise comparison of kit estimates
+m_Bacillus.LogCopiespermLofMilk_emmeans <- emmeans(m_Bacillus.LogCopiespermLofMilk,pairwise~VariableKit)
+# Use compact letter display for convenience
+m_Bacillus.LogCopiespermLofMilk_cld <- CLD(m_Bacillus.LogCopiespermLofMilk_emmeans$emmeans,
+                                         Letters=LETTERS)
+m_Bacillus.LogCopiespermLofMilk_cld
+
+# Get fitted values from model to plot with other software
+emmeans(m_Bacillus.LogCopiespermLofMilk,~ VariableKit) %>%
+  summary() %>%
+  data.frame() 
+
+# Plot fitted values from model
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+emmeans(m_Bacillus.LogCopiespermLofMilk,~VariableKit) %>%
+  summary() %>%
+  data.frame() %>%
+  ggplot(aes(x=VariableKit,y=emmean,color=VariableKit)) +
+  geom_point() +
+  labs(y="Estimated Marginal Means") +
+  geom_errorbar(aes(ymin=lower.CL,ymax=upper.CL),width=0.5) +
+  geom_text(data=data.frame(m_Bacillus.LogCopiespermLofMilk_cld),aes(x=VariableKit,label=`.group`),hjust=-.1) +
+  theme_bw()+
+  ggtitle("Bacillus Copy Numbers - Inoculated Milk Only")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+```
+
+
+
+## Bacillus - Model not assuming homoscedasticity and simpler model
+
+```{r}
+# from https://cran.r-project.org/web/packages/emmeans/vignettes/FAQs.html#contents
+
+library(nlme)
+# Final model chosen:
+# Model 3:  LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet
+# m_Bacillus.LogCopiespermLofMilk3 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Bacillus.InnOnly )
+
+mod.Bacillus = nlme::gls(LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Bacillus.InnOnly,
+                 weights = varIdent(form = ~1 | VariableKit))
+summary(mod.Bacillus)
+
+AIC(m_Bacillus.LogCopiespermLofMilk3)
+AIC(mod.Bacillus)
+
+# Testing simpler model
+
+mod3.Bacillus = nlme::gls(LogCopiespermLofMilk ~ VariableKit, data=Bacillus.InnOnly,
+                 weights = varIdent(form = ~1 | VariableKit))
+summary(mod3.Bacillus)
+
+AIC(m_Bacillus.LogCopiespermLofMilk3)
+AIC(mod.Bacillus)
+AIC(mod3.Bacillus) #mod.Bacillus is best model (including qPCRefficiency and SpikeSet)
+
+#mod.Bacillus not assuming homoscedasticity and including qPCRefficiency and SpikeSet is a much better fit than any of the alternatives
+
+```
+
+### Final Bacillus Figure
+```{r}
+
+# Check Tukey-adjusted pairwise comparison of kit estimates
+mod.Bacillus_emmeans <- emmeans(mod.Bacillus,pairwise~VariableKit)
+# Use compact letter display for convenience
+mod.Bacillus_cld <- CLD(mod.Bacillus_emmeans$emmeans, sort=TRUE, details=TRUE, Letters=LETTERS)
+mod.Bacillus_cld_letters <- CLD(mod.Bacillus_emmeans$emmeans, Letters=LETTERS)
+mod.Bacillus_cld
+
+# Get fitted values from model to plot with other software
+emmeans(mod.Bacillus,~ VariableKit) %>%
+  summary() %>%
+  data.frame() 
+
+# Get summary
+summary(emmeans(mod.Bacillus,~ VariableKit), infer=TRUE)
+
+# Plot overlaying model estimates to raw data
+mod.Bacillus_df1_Bacillus.rawdata<-Bacillus.InnOnly[c(25,42,4)]
+
+mod.Bacillus_df2_Bacillus.model<-emmeans(mod.Bacillus,~VariableKit) %>%
+  summary() %>%
+  data.frame()
+
+ggplot() +
+  geom_jitter(data=mod.Bacillus_df1_Bacillus.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk)) +
+  geom_point(data=mod.Bacillus_df2_Bacillus.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_errorbar(data=mod.Bacillus_df2_Bacillus.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)
+
+# Making the plot pretty
+
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+
+
+ggplot() +
+  geom_jitter(data=mod.Bacillus_df1_Bacillus.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  scale_color_manual(values=Colors)+
+   geom_errorbar(data=mod.Bacillus_df2_Bacillus.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)+
+   geom_point(data=mod.Bacillus_df2_Bacillus.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_text(data =data.frame(mod.Bacillus_cld_letters),aes(x=VariableKit,label=`.group`, y=emmean), nudge_y = 0.2, nudge_x = -0.05, fontface = "bold")+
+ylim(3.0, 8.0)+
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Bacillus Copy Numbers - Inoculated Milk Only - Not assuming homoscedasticity ")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+```
+
+# Listeria monocytogenes Copy Numbers
+```{r}
+#Data File: CleanDNAprepData1.18.19
+library(ggplot2)
+library(dplyr)
+library(emmeans)
+library(multcompView)
+
+#Filter Subset from Sample Data
+Listeria <- SampleData %>% filter(Assay=="Listeria monocytogenes")
+dim(Listeria)
+
+#Summary Statistics
+
+Listeria.summary <- Listeria %>%
+ group_by(VariableKit,VariableSampleType) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())%>%
+  data.frame()
+  
+write.table (Listeria.summary, "Listeria.summary.txt", sep="\t" )
+```
+
+```{r}
+#Plot Raw Means and Standard Deviations
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+ggplot(data=Listeria,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk,z=VariableKit, color=VariableKit, ylab="Copy Numbers")) +
+  ylab ("Log10 Copies / mL of Milk")+
+  geom_boxplot(lwd=1)+
+  theme_bw()+
+  ggtitle("Listeria Copy Numbers")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+
+
+
+
+
+
+ggplot(data=Listeria,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  ylab ("Log10 Copies / mL of Milk")+
+      geom_jitter(width=0.25)+
+  ggtitle("Listeria Copy Numbers")+
+  theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+
+
+ggplot(data=Listeria,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk, color=SpikeSet, shape=VariableKit)) +
+  ylab ("Log10 Copies / mL of Milk")+
+    geom_jitter(width=0.35)+
+  ggtitle("Listeria Copy Numbers")+
+  theme_bw()+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+```
+
+```{r}
+# Inoculated Milk Data
+Listeria.InnOnly <- Listeria %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
+Listeria.InnOnly %>%
+  group_by(VariableSampleType, VariableSpikeSet, VariableKit) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())%>%
+  data.frame()
+```
+## Model Selection
+### Linear Models
+```{r}
+#3 linear models were compared: including SpikeSet only, qPCRefficiency only, and both as covariates. Best model fit was used as the final model. 
+m_Listeria.LogCopiespermLofMilk1 <- lm( LogCopiespermLofMilk ~ VariableKit + SpikeSet, data=Listeria.InnOnly )
+summary(m_Listeria.LogCopiespermLofMilk1)
+
+m_Listeria.LogCopiespermLofMilk2 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency, data=Listeria.InnOnly )
+summary(m_Listeria.LogCopiespermLofMilk2)
+
+m_Listeria.LogCopiespermLofMilk3 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Listeria.InnOnly )
+summary(m_Listeria.LogCopiespermLofMilk3)
+
+# Fit of model with both qPCRefficiency and SpikeSet is better than fit of model with SpikeSet only
+anova(m_Listeria.LogCopiespermLofMilk1, m_Listeria.LogCopiespermLofMilk2, m_Listeria.LogCopiespermLofMilk3)
+
+AIC(m_Listeria.LogCopiespermLofMilk1)
+AIC(m_Listeria.LogCopiespermLofMilk2)
+AIC(m_Listeria.LogCopiespermLofMilk3)
+# Final model chosen:
+# Model 3:  LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet
+# m_Listeria.LogCopiespermLofMilk3 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Listeria.InnOnly )
+```
+### Mixed effects models - for reference
+```{r}
+library(lme4)
+library(lmerTest)
+
+model1 = lmer(LogCopiespermLofMilk ~ VariableKit + (1|SpikeSet),
+            data=Listeria.InnOnly,
+            REML=TRUE)
+summary(model1)
+
+model2 = lmer(LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + (1|SpikeSet),
+            data=Listeria.InnOnly,
+            REML=TRUE)
+summary(model2)
+
+anova(model1, model2)
+AIC (model1)
+AIC (model2)
+```
+
+## Final Model
+```{r}
+m_Listeria.LogCopiespermLofMilk <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Listeria.InnOnly )
+summary(m_Listeria.LogCopiespermLofMilk)
+
+
+plot(x=predict(m_Listeria.LogCopiespermLofMilk),y=resid(m_Listeria.LogCopiespermLofMilk), col=Listeria.InnOnly$VariableKit)
+
+  # using ggplot2
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+ 
+ggplot(m_Listeria.LogCopiespermLofMilk, aes(x=predict(m_Listeria.LogCopiespermLofMilk), y=resid(m_Listeria.LogCopiespermLofMilk), color=VariableKit)) +
+  geom_point()+
+  theme_bw()+
+  ggtitle("Listeria Innoculated Only - Model Fit - Residuals vs Predicted")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  geom_hline(yintercept = 1) +
+  geom_hline(yintercept = -1)
+
+  # qqplots
+qqnorm(resid(m_Listeria.LogCopiespermLofMilk, col=Listeria.InnOnly$VariableKit))
+qqline(resid(m_Listeria.LogCopiespermLofMilk))
+summary(m_Listeria.LogCopiespermLofMilk)
+
+#No large residuals were identified
+
+Listeria.InnOnly$resid <- resid(m_Listeria.LogCopiespermLofMilk)
+Listeria.InnOnly %>% 
+  filter(abs(resid)>1) %>%
+  select(VariableKit,resid) %>%
+  group_by(VariableKit) %>%
+  summarize(n=n())
+
+```
+
+```{r}
+# Check Tukey-adjusted pairwise comparison of kit estimates
+m_Listeria.LogCopiespermLofMilk_emmeans <- emmeans(m_Listeria.LogCopiespermLofMilk,pairwise~VariableKit)
+# Use compact letter display for convenience
+m_Listeria.LogCopiespermLofMilk_cld <- CLD(m_Listeria.LogCopiespermLofMilk_emmeans$emmeans,
+                                         Letters=LETTERS)
+m_Listeria.LogCopiespermLofMilk_cld
+
+# Get fitted values from model to plot with other software
+emmeans(m_Listeria.LogCopiespermLofMilk,~ VariableKit) %>%
+  summary() %>%
+  data.frame() 
+
+# Plot fitted values from model
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+emmeans(m_Listeria.LogCopiespermLofMilk,~VariableKit) %>%
+  summary() %>%
+  data.frame() %>%
+  ggplot(aes(x=VariableKit,y=emmean,color=VariableKit)) +
+  geom_point() +
+  labs(y="Estimated Marginal Means") +
+  geom_errorbar(aes(ymin=lower.CL,ymax=upper.CL),width=0.5) +
+  geom_text(data=data.frame(m_Listeria.LogCopiespermLofMilk_cld),aes(x=VariableKit,label=`.group`),hjust=-.1) +
+  theme_bw()+
+  ggtitle("Listeria Copy Numbers - Inoculated Milk Only")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+
+```
+## Listeria - Model not assuming homoscedasticity and simpler model
+
+```{r}
+# from https://cran.r-project.org/web/packages/emmeans/vignettes/FAQs.html#contents
+
+library(nlme)
+# Final model chosen:
+# Model 3:  LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet
+# m_Listeria.LogCopiespermLofMilk3 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Listeria.InnOnly )
+
+mod.Listeria = nlme::gls(LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Listeria.InnOnly,
+                 weights = varIdent(form = ~1 | VariableKit))
+summary(mod.Listeria)
+
+AIC(m_Listeria.LogCopiespermLofMilk3)
+AIC(mod.Listeria)
+
+# Testing simpler model
+
+mod3.Listeria = nlme::gls(LogCopiespermLofMilk ~ VariableKit, data=Listeria.InnOnly,
+                 weights = varIdent(form = ~1 | VariableKit))
+summary(mod3.Listeria)
+
+AIC(m_Listeria.LogCopiespermLofMilk3)
+AIC(mod.Listeria)
+AIC(mod3.Listeria) #mod.Listeria is best model (including qPCRefficiency and SpikeSet)
+
+#mod.Listeria not assuming homoscedasticity and including qPCRefficiency and SpikeSet is a much better fit than any of the alternatives
+
+```
+
+### Final Listeria Figure
+```{r}
+
+# Check Tukey-adjusted pairwise comparison of kit estimates
+mod.Listeria_emmeans <- emmeans(mod.Listeria,pairwise~VariableKit)
+# Use compact letter display for convenience
+mod.Listeria_cld <- CLD(mod.Listeria_emmeans$emmeans, sort=TRUE, details=TRUE, Letters=LETTERS)
+mod.Listeria_cld_letters <- CLD(mod.Listeria_emmeans$emmeans, Letters=LETTERS)
+mod.Listeria_cld
+
+# Get fitted values from model to plot with other software
+emmeans(mod.Listeria,~ VariableKit) %>%
+  summary() %>%
+  data.frame() 
+
+# Get summary
+summary(emmeans(mod.Listeria,~ VariableKit), infer=TRUE)
+
+# Plot overlaying model estimates to raw data
+mod.Listeria_df1_Listeria.rawdata<-Listeria.InnOnly[c(25,42,4)]
+
+mod.Listeria_df2_Listeria.model<-emmeans(mod.Listeria,~VariableKit) %>%
+  summary() %>%
+  data.frame()
+
+ggplot() +
+  geom_jitter(data=mod.Listeria_df1_Listeria.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk)) +
+  geom_point(data=mod.Listeria_df2_Listeria.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_errorbar(data=mod.Listeria_df2_Listeria.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)
+
+# Making the plot pretty
+
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+
+
+ggplot() +
+  geom_jitter(data=mod.Listeria_df1_Listeria.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  scale_color_manual(values=Colors)+
+   geom_errorbar(data=mod.Listeria_df2_Listeria.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)+
+   geom_point(data=mod.Listeria_df2_Listeria.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_text(data =data.frame(mod.Listeria_cld_letters),aes(x=VariableKit,label=`.group`, y=emmean), nudge_y = 0.2, nudge_x = -0.05, fontface = "bold")+
+ylim(4.0, 7.5)+
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Listeria Copy Numbers - Inoculated Milk Only - Not assuming homoscedasticity ")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+```
+
+
+# Mycobacterium smegmatis Copy Numbers
+```{r}
+#Data File: CleanDNAprepData1.18.19
+library(ggplot2)
+library(dplyr)
+library(emmeans)
+library(multcompView)
+
+#Filter Subset from Sample Data
+Mycobacterium <- SampleData %>% filter(Assay=="Mycobacterium smegmatis")
+dim(Mycobacterium)
+
+#Summary Statistics
+
+Mycobacterium.summary <- Mycobacterium %>%
+  group_by(VariableKit,VariableSampleType) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())%>%
+  data.frame()
+  
+write.table (Mycobacterium.summary, "Mycobacterium.summary.txt", sep="\t" )
+```
+
+```{r}
+#Plot Raw Means and Standard Deviations
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+ggplot(data=Mycobacterium,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk,z=VariableKit, color=VariableKit, ylab="Copy Numbers")) +
+  ylab ("Log10 Copies / mL of Milk")+
+  geom_boxplot(lwd=1)+
+  theme_bw()+
+  ggtitle("Mycobacterium Copy Numbers")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+
+
+
+
+
+ggplot(data=Mycobacterium,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  ylab ("Log10 Copies / mL of Milk")+
+      geom_jitter(width=0.25)+
+  ggtitle("Mycobacterium Copy Numbers")+
+  theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+
+ggplot(data=Mycobacterium,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk, color=SpikeSet, shape=VariableKit)) +
+  ylab ("Log10 Copies / mL of Milk")+
+    geom_jitter(width=0.35)+
+  ggtitle("Mycobacterium Copy Numbers")+
+  theme_bw()+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))
+```
+
+```{r}
+# Inoculated Milk Data
+Mycobacterium.InnOnly <- Mycobacterium %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
+Mycobacterium.InnOnly %>%
+  group_by(VariableSampleType, VariableSpikeSet, VariableKit) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())%>%
+  data.frame()
+```
+## Model Selection
+### Linear Models
+```{r}
+#3 linear models were compared: including SpikeSet only, qPCRefficiency only, and both as covariates. Best model fit was used as the final model. 
+m_Mycobacterium.LogCopiespermLofMilk1 <- lm( LogCopiespermLofMilk ~ VariableKit + SpikeSet, data=Mycobacterium.InnOnly )
+summary(m_Mycobacterium.LogCopiespermLofMilk1)
+
+m_Mycobacterium.LogCopiespermLofMilk2 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency, data=Mycobacterium.InnOnly )
+summary(m_Mycobacterium.LogCopiespermLofMilk2)
+
+m_Mycobacterium.LogCopiespermLofMilk3 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Mycobacterium.InnOnly )
+summary(m_Mycobacterium.LogCopiespermLofMilk3)
+
+# Fit of model with both qPCRefficiency and SpikeSet is better than fit of model with SpikeSet only
+anova(m_Mycobacterium.LogCopiespermLofMilk1, m_Mycobacterium.LogCopiespermLofMilk2, m_Mycobacterium.LogCopiespermLofMilk3)
+
+AIC(m_Mycobacterium.LogCopiespermLofMilk1)
+AIC(m_Mycobacterium.LogCopiespermLofMilk2)
+AIC(m_Mycobacterium.LogCopiespermLofMilk3)
+# Final model chosen:
+# Model 3:  LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet
+#m_Mycobacterium.LogCopiespermLofMilk3 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Mycobacterium.InnOnly )
+
+```
+### Mixed effects models - for reference
+```{r}
+library(lme4)
+library(lmerTest)
+
+model1 = lmer(LogCopiespermLofMilk ~ VariableKit + (1|SpikeSet),
+            data=Mycobacterium.InnOnly,
+            REML=TRUE)
+summary(model1)
+
+model2 = lmer(LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + (1|SpikeSet),
+            data=Mycobacterium.InnOnly,
+            REML=TRUE)
+summary(model2)
+
+anova(model1, model2)
+AIC (model1)
+AIC (model2)
+```
+
+## Final Model
+```{r}
+m_Mycobacterium.LogCopiespermLofMilk <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Mycobacterium.InnOnly )
+summary(m_Mycobacterium.LogCopiespermLofMilk)
+
+
+plot(x=predict(m_Mycobacterium.LogCopiespermLofMilk),y=resid(m_Mycobacterium.LogCopiespermLofMilk), col=Mycobacterium.InnOnly$VariableKit)
+
+  # using ggplot2
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+ 
+ggplot(m_Mycobacterium.LogCopiespermLofMilk, aes(x=predict(m_Mycobacterium.LogCopiespermLofMilk), y=resid(m_Mycobacterium.LogCopiespermLofMilk), color=VariableKit)) +
+  geom_point()+
+  theme_bw()+
+  ggtitle("Mycobacterium Innoculated Only - Model Fit - Residuals vs Predicted")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  geom_hline(yintercept = 1) +
+  geom_hline(yintercept = -1)
+
+  # qqplots
+qqnorm(resid(m_Mycobacterium.LogCopiespermLofMilk, col=Mycobacterium.InnOnly$VariableKit))
+qqline(resid(m_Mycobacterium.LogCopiespermLofMilk))
+summary(m_Mycobacterium.LogCopiespermLofMilk)
+
+# ONly 1 large residual was identified, and it belonged to EZfood
+
+Mycobacterium.InnOnly$resid <- resid(m_Mycobacterium.LogCopiespermLofMilk)
+Mycobacterium.InnOnly %>% 
+  filter(abs(resid)>1) %>%
+  select(VariableKit,resid) %>%
+  group_by(VariableKit) %>%
+  summarize(n=n())
+
+```
+
+```{r}
+# Check Tukey-adjusted pairwise comparison of kit estimates
+m_Mycobacterium.LogCopiespermLofMilk_emmeans <- emmeans(m_Mycobacterium.LogCopiespermLofMilk,pairwise~VariableKit)
+# Use compact letter display for convenience
+m_Mycobacterium.LogCopiespermLofMilk_cld <- CLD(m_Mycobacterium.LogCopiespermLofMilk_emmeans$emmeans,
+                                         Letters=LETTERS)
+m_Mycobacterium.LogCopiespermLofMilk_cld
+
+# Get fitted values from model to plot with other software
+emmeans(m_Mycobacterium.LogCopiespermLofMilk,~ VariableKit) %>%
+  summary() %>%
+  data.frame() 
+
+# Plot fitted values from model
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+
+emmeans(m_Mycobacterium.LogCopiespermLofMilk,~VariableKit) %>%
+  summary() %>%
+  data.frame() %>%
+  ggplot(aes(x=VariableKit,y=emmean,color=VariableKit)) +
+  geom_point() +
+  labs(y="Estimated Marginal Means") +
+  geom_errorbar(aes(ymin=lower.CL,ymax=upper.CL),width=0.5) +
+  geom_text(data=data.frame(m_Mycobacterium.LogCopiespermLofMilk_cld),aes(x=VariableKit,label=`.group`),hjust=-.1) +
+  theme_bw()+
+  ggtitle("Mycobacterium Copy Numbers - Inoculated Milk Only")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+```
+
+## Mycobacterium - Model not assuming homoscedasticity and simpler model
+
+```{r}
+# from https://cran.r-project.org/web/packages/emmeans/vignettes/FAQs.html#contents
+
+library(nlme)
+# Final model chosen:
+# Model 3:  LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet
+# m_Mycobacterium.LogCopiespermLofMilk3 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Mycobacterium.InnOnly )
+
+mod.Mycobacterium = nlme::gls(LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Mycobacterium.InnOnly,
+                 weights = varIdent(form = ~1 | VariableKit))
+summary(mod.Mycobacterium)
+
+AIC(m_Mycobacterium.LogCopiespermLofMilk3)
+AIC(mod.Mycobacterium)
+
+# Testing simpler model
+
+mod3.Mycobacterium = nlme::gls(LogCopiespermLofMilk ~ VariableKit, data=Mycobacterium.InnOnly,
+                 weights = varIdent(form = ~1 | VariableKit))
+summary(mod3.Mycobacterium)
+
+AIC(m_Mycobacterium.LogCopiespermLofMilk3)
+AIC(mod.Mycobacterium)
+AIC(mod3.Mycobacterium) #mod.Mycobacterium is best model (including qPCRefficiency and SpikeSet)
+
+#mod.Mycobacterium not assuming homoscedasticity and including qPCRefficiency and SpikeSet is a much better fit than any of the alternatives
+
+```
+
+### Final Mycobacterium Figure
+```{r}
+
+# Check Tukey-adjusted pairwise comparison of kit estimates
+mod.Mycobacterium_emmeans <- emmeans(mod.Mycobacterium,pairwise~VariableKit)
+# Use compact letter display for convenience
+mod.Mycobacterium_cld <- CLD(mod.Mycobacterium_emmeans$emmeans, sort=TRUE, details=TRUE, Letters=LETTERS)
+mod.Mycobacterium_cld_letters <- CLD(mod.Mycobacterium_emmeans$emmeans, Letters=LETTERS)
+mod.Mycobacterium_cld
+
+# Get fitted values from model to plot with other software
+emmeans(mod.Mycobacterium,~ VariableKit) %>%
+  summary() %>%
+  data.frame() 
+
+# Get summary
+summary(emmeans(mod.Mycobacterium,~ VariableKit), infer=TRUE)
+
+# Plot overlaying model estimates to raw data
+mod.Mycobacterium_df1_Mycobacterium.rawdata<-Mycobacterium.InnOnly[c(25,42,4)]
+
+mod.Mycobacterium_df2_Mycobacterium.model<-emmeans(mod.Mycobacterium,~VariableKit) %>%
+  summary() %>%
+  data.frame()
+
+ggplot() +
+  geom_jitter(data=mod.Mycobacterium_df1_Mycobacterium.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk)) +
+  geom_point(data=mod.Mycobacterium_df2_Mycobacterium.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_errorbar(data=mod.Mycobacterium_df2_Mycobacterium.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)
+
+# Making the plot pretty
+
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+
+
+ggplot() +
+  geom_jitter(data=mod.Mycobacterium_df1_Mycobacterium.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  scale_color_manual(values=Colors)+
+   geom_errorbar(data=mod.Mycobacterium_df2_Mycobacterium.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)+
+   geom_point(data=mod.Mycobacterium_df2_Mycobacterium.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_text(data =data.frame(mod.Mycobacterium_cld_letters),aes(x=VariableKit,label=`.group`, y=emmean), nudge_y = 0.2, nudge_x = -0.05, fontface = "bold")+
+ylim(2.5, 8.0)+
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Mycobacterium Copy Numbers - Inoculated Milk Only - Not assuming homoscedasticity ")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+```
+
+
+
+
+# Salmonella sp. Copy Numbers
+```{r}
+#Data File: CleanDNAprepData1.18.19
+library(ggplot2)
+library(dplyr)
+library(emmeans)
+library(multcompView)
+
+#Filter Subset from Sample Data
+Salmonella <- SampleData %>% filter(Assay=="Salmonella sp.")
+dim(Salmonella)
+
+#Summary Statistics
+
+Salmonella.summary <- Salmonella %>%
+  group_by(VariableKit,VariableSampleType) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())%>%
+  data.frame()
+  
+write.table (Salmonella.summary, "Salmonella.summary.txt", sep="\t" )
+```
+
+```{r}
+#Plot Raw Means and Standard Deviations
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+ggplot(data=Salmonella,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk,z=VariableKit, color=VariableKit, ylab="Copy Numbers")) +
+  ylab ("Log10 Copies / mL of Milk")+
+  geom_boxplot(lwd=1)+
+  theme_bw()+
+  ggtitle("Salmonella Copy Numbers")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+
+
+
+ggplot(data=Salmonella,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  ylab ("Log10 Copies / mL of Milk")+
+      geom_jitter(width=0.25)+
+  ggtitle("Salmonella Copy Numbers")+
+  theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))
+
+
+ggplot(data=Salmonella,
+       mapping=aes(x=VariableSampleType,y=LogCopiespermLofMilk, color=SpikeSet)) +
+  ylab ("Log10 Copies / mL of Milk")+
+    geom_jitter(width=0.35)+
+  ggtitle("Salmonella Copy Numbers")+
+  theme_bw()+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("UninoculatedMilk", "InoculatedMilk", "NP40InoculatedMilk",  "MockCommunity", "NoTemplateControl"))
+```
+
+```{r}
+# Inoculated Milk Data
+Salmonella.InnOnly <- Salmonella %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
+Salmonella.InnOnly %>%
+  group_by(VariableSampleType, VariableSpikeSet, VariableKit) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())%>%
+  data.frame()
+```
+## Model Selection
+### Linear Models
+```{r}
+#3 linear models were compared: including SpikeSet only, qPCRefficiency only, and both as covariates. Best model fit was used as the final model. 
+m_Salmonella.LogCopiespermLofMilk1 <- lm( LogCopiespermLofMilk ~ VariableKit + SpikeSet, data=Salmonella.InnOnly )
+summary(m_Salmonella.LogCopiespermLofMilk1)
+
+m_Salmonella.LogCopiespermLofMilk2 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency, data=Salmonella.InnOnly )
+summary(m_Salmonella.LogCopiespermLofMilk2)
+
+m_Salmonella.LogCopiespermLofMilk3 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Salmonella.InnOnly )
+summary(m_Salmonella.LogCopiespermLofMilk3)
+
+# Fit of model with both qPCRefficiency and SpikeSet is better than fit of model with SpikeSet only
+anova(m_Salmonella.LogCopiespermLofMilk1, m_Salmonella.LogCopiespermLofMilk2, m_Salmonella.LogCopiespermLofMilk3)
+
+AIC(m_Salmonella.LogCopiespermLofMilk1)
+AIC(m_Salmonella.LogCopiespermLofMilk2)
+AIC(m_Salmonella.LogCopiespermLofMilk3)
+# Final model chosen:
+# Model 3:  LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet
+# m_Salmonella.LogCopiespermLofMilk3 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Salmonella.InnOnly )
+```
+### Mixed effects models - for reference
+```{r}
+library(lme4)
+library(lmerTest)
+
+model1 = lmer(LogCopiespermLofMilk ~ VariableKit + (1|SpikeSet),
+            data=Salmonella.InnOnly,
+            REML=TRUE)
+summary(model1)
+
+model2 = lmer(LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + (1|SpikeSet),
+            data=Salmonella.InnOnly,
+            REML=TRUE)
+summary(model2)
+
+anova(model1, model2)
+AIC (model1)
+AIC (model2)
+```
+
+## Final Model
+```{r}
+m_Salmonella.LogCopiespermLofMilk <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Salmonella.InnOnly )
+summary(m_Salmonella.LogCopiespermLofMilk)
+
+
+plot(x=predict(m_Salmonella.LogCopiespermLofMilk),y=resid(m_Salmonella.LogCopiespermLofMilk), col=Salmonella.InnOnly$VariableKit)
+
+  # using ggplot2
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+ 
+ggplot(m_Salmonella.LogCopiespermLofMilk, aes(x=predict(m_Salmonella.LogCopiespermLofMilk), y=resid(m_Salmonella.LogCopiespermLofMilk), color=VariableKit)) +
+  geom_point()+
+  theme_bw()+
+  ggtitle("Salmonella Innoculated Only - Model Fit - Residuals vs Predicted")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  geom_hline(yintercept = 1) +
+  geom_hline(yintercept = -1)
+
+  # qqplots
+qqnorm(resid(m_Salmonella.LogCopiespermLofMilk, col=Salmonella.InnOnly$VariableKit))
+qqline(resid(m_Salmonella.LogCopiespermLofMilk))
+summary(m_Salmonella.LogCopiespermLofMilk)
+
+# ONly 1 large residual was identified, and it belonged to EZfood
+
+Salmonella.InnOnly$resid <- resid(m_Salmonella.LogCopiespermLofMilk)
+Salmonella.InnOnly %>% 
+  filter(abs(resid)>1) %>%
+  select(VariableKit,resid) %>%
+  group_by(VariableKit) %>%
+  summarize(n=n())
+
+```
+
+```{r}
+# Check Tukey-adjusted pairwise comparison of kit estimates
+m_Salmonella.LogCopiespermLofMilk_emmeans <- emmeans(m_Salmonella.LogCopiespermLofMilk,pairwise~VariableKit)
+# Use compact letter display for convenience
+m_Salmonella.LogCopiespermLofMilk_cld <- CLD(m_Salmonella.LogCopiespermLofMilk_emmeans$emmeans,
+                                         Letters=LETTERS)
+m_Salmonella.LogCopiespermLofMilk_cld
+
+# Get fitted values from model to plot with other software
+emmeans(m_Salmonella.LogCopiespermLofMilk,~ VariableKit) %>%
+  summary() %>%
+  data.frame() 
+
+# Plot fitted values from model
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+emmeans(m_Salmonella.LogCopiespermLofMilk,~VariableKit) %>%
+  summary() %>%
+  data.frame() %>%
+  ggplot(aes(x=VariableKit,y=emmean,color=VariableKit)) +
+  geom_point() +
+  labs(y="Estimated Marginal Means") +
+  geom_errorbar(aes(ymin=lower.CL,ymax=upper.CL),width=0.5) +
+  geom_text(data=data.frame(m_Salmonella.LogCopiespermLofMilk_cld),aes(x=VariableKit,label=`.group`),hjust=-.1) +
+  theme_bw()+
+  ggtitle("Salmonella Copy Numbers - Inoculated Milk Only")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+```
+
+## Salmonella - Model not assuming homoscedasticity and simpler model
+
+```{r}
+# from https://cran.r-project.org/web/packages/emmeans/vignettes/FAQs.html#contents
+
+library(nlme)
+# Final model chosen:
+# Model 3:  LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet
+# m_Salmonella.LogCopiespermLofMilk3 <- lm( LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Salmonella.InnOnly )
+
+mod.Salmonella = nlme::gls(LogCopiespermLofMilk ~ VariableKit + qPCRefficiency + SpikeSet, data=Salmonella.InnOnly,
+                 weights = varIdent(form = ~1 | VariableKit))
+summary(mod.Salmonella)
+
+AIC(m_Salmonella.LogCopiespermLofMilk3)
+AIC(mod.Salmonella)
+
+# Testing simpler model
+
+mod3.Salmonella = nlme::gls(LogCopiespermLofMilk ~ VariableKit, data=Salmonella.InnOnly,
+                 weights = varIdent(form = ~1 | VariableKit))
+summary(mod3.Salmonella)
+
+AIC(m_Salmonella.LogCopiespermLofMilk3)
+AIC(mod.Salmonella)
+AIC(mod3.Salmonella) #mod.Salmonella is best model (including qPCRefficiency and SpikeSet)
+
+#mod.Salmonella not assuming homoscedasticity and including qPCRefficiency and SpikeSet is a much better fit than any of the alternatives
+
+```
+
+### Final Salmonella Figure
+```{r}
+
+
+# Check Tukey-adjusted pairwise comparison of kit estimates
+mod.Salmonella_emmeans <- emmeans(mod.Salmonella,pairwise~VariableKit)
+# Use compact letter display for convenience
+mod.Salmonella_cld <- CLD(mod.Salmonella_emmeans$emmeans, sort=TRUE, details=TRUE, Letters=LETTERS)
+mod.Salmonella_cld_letters <- CLD(mod.Salmonella_emmeans$emmeans, Letters=LETTERS)
+mod.Salmonella_cld
+
+# Get fitted values from model to plot with other software
+emmeans(mod.Salmonella,~ VariableKit) %>%
+  summary() %>%
+  data.frame() 
+
+# Get summary
+summary(emmeans(mod.Salmonella,~ VariableKit), infer=TRUE)
+
+# Plot overlaying model estimates to raw data
+mod.Salmonella_df1_Salmonella.rawdata<-Salmonella.InnOnly[c(25,42,4)]
+
+mod.Salmonella_df2_Salmonella.model<-emmeans(mod.Salmonella,~VariableKit) %>%
+  summary() %>%
+  data.frame()
+
+ggplot() +
+  geom_jitter(data=mod.Salmonella_df1_Salmonella.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk)) +
+  geom_point(data=mod.Salmonella_df2_Salmonella.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_errorbar(data=mod.Salmonella_df2_Salmonella.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)
+
+# Making the plot pretty
+
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+
+
+ggplot() +
+  geom_jitter(data=mod.Salmonella_df1_Salmonella.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  scale_color_manual(values=Colors)+
+   geom_errorbar(data=mod.Salmonella_df2_Salmonella.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)+
+   geom_point(data=mod.Salmonella_df2_Salmonella.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_text(data =data.frame(mod.Salmonella_cld_letters),aes(x=VariableKit,label=`.group`, y=emmean), nudge_y = 0.2, nudge_x = -0.05, fontface = "bold")+
+ylim(1.5, 7.0)+
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Salmonella Copy Numbers - Inoculated Milk Only - Not assuming homoscedasticity ")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+```
+
+# Final Figures
+
+
+```{r}
+Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","Pfood"= "#D2326B", "PSoilP"="#1D6E9B", "PviralDNA"= "#6850B4", "ZymoDNA"="#165F05")
+
+#Bovine
+
+ggplot() +
+  geom_jitter(data=mod3df1_Bovine.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk,color=VariableKit, shape=SpikeSet)) +
+  scale_color_manual(values=Colors)+
+  geom_errorbar(data=mod3df2_Bovine.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.3)+  
+  geom_point(data=mod3df2_Bovine.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_text(data =data.frame(mod3_cld_letters),aes(x=VariableKit,label=`.group`, y=emmean), nudge_y = 0.2, nudge_x = -0.05, fontface = "bold") +
+ylim(1.5, 8.5)+
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Bovine Copy Numbers - Inoculated Milk Only - Not assuming homoscedasticity ")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+# Total Bacteria
+ggplot() +
+  geom_jitter(data=mod.Bacteria_df1_Bacteria.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  scale_color_manual(values=Colors)+
+   geom_errorbar(data=mod.Bacteria_df2_Bacteria.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)+
+   geom_point(data=mod.Bacteria_df2_Bacteria.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_text(data =data.frame(mod.Bacteria_cld_letters),aes(x=VariableKit,label=`.group`, y=emmean), nudge_y = 0.2, nudge_x = -0.05, fontface = "bold")+
+ylim(1.5, 8.5)+
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Total Bacteria Copy Numbers - Inoculated Milk Only - Not assuming homoscedasticity ")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+# Listeria
+
+ggplot() +
+  geom_jitter(data=mod.Listeria_df1_Listeria.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  scale_color_manual(values=Colors)+
+   geom_errorbar(data=mod.Listeria_df2_Listeria.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)+
+   geom_point(data=mod.Listeria_df2_Listeria.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_text(data =data.frame(mod.Listeria_cld_letters),aes(x=VariableKit,label=`.group`, y=emmean), nudge_y = 0.2, nudge_x = -0.05, fontface = "bold")+
+ylim(1.5, 8.5)+
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Listeria Copy Numbers - Inoculated Milk Only - Not assuming homoscedasticity ")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+# Mycobacterium
+ggplot() +
+  geom_jitter(data=mod.Mycobacterium_df1_Mycobacterium.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  scale_color_manual(values=Colors)+
+   geom_errorbar(data=mod.Mycobacterium_df2_Mycobacterium.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)+
+   geom_point(data=mod.Mycobacterium_df2_Mycobacterium.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_text(data =data.frame(mod.Mycobacterium_cld_letters),aes(x=VariableKit,label=`.group`, y=emmean), nudge_y = 0.2, nudge_x = -0.05, fontface = "bold")+
+ylim(1.5, 8.5)+
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Mycobacterium")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  theme(legend.position = "none")+
+  scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+
+# Salmonella
+
+ggplot() +
+  geom_jitter(data=mod.Salmonella_df1_Salmonella.rawdata,aes(x=VariableKit,y=LogCopiespermLofMilk, color=VariableKit, shape=SpikeSet)) +
+  scale_color_manual(values=Colors)+
+   geom_errorbar(data=mod.Salmonella_df2_Salmonella.model,aes(x=VariableKit,ymin=lower.CL,ymax=upper.CL),width=0.5)+
+   geom_point(data=mod.Salmonella_df2_Salmonella.model,aes(x=VariableKit,y=emmean,fill=VariableKit))+
+  geom_text(data =data.frame(mod.Salmonella_cld_letters),aes(x=VariableKit,label=`.group`, y=emmean), nudge_y = 0.2, nudge_x = -0.05, fontface = "bold")+
+ylim(1.5, 8.5) +
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Salmonella Copy Numbers - Inoculated Milk Only - Not assuming homoscedasticity ")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  theme(legend.position = "none")+
+scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+```
