@@ -1,0 +1,105 @@
+---
+title: "Selective Lysis with Subtilisin and Host Depletion with PMA"
+author: "ErikaGanda"
+output: html_document
+---
+```{r}
+#Data File: SelectiveLysisData
+library(ggplot2)
+library(dplyr)
+library(emmeans)
+library(multcompView)
+
+#Read Data
+LysisData <- read.table("SelectiveLysisData.txt", sep="\t",  fill = TRUE, header=TRUE)
+head(LysisData)
+SampleData <- LysisData %>% filter(MilkType!="NegCTRL")
+SampleData <- SampleData%>% filter(MilkType!="10xNegCTRL")
+SampleData <- SampleData%>% filter(MilkType!="ExtractionNEG")
+SampleData <- SampleData%>% filter(FrozenGlycerol!="Yes")
+SampleData <- SampleData%>% filter(PMA!="No")
+dim (SampleData)
+
+write.table (SampleData, "SampleData.txt", sep="\t" )
+
+#Summary Statistics
+SampleData.summary <- SampleData %>%
+  group_by(TargetName, MilkType, Buffer, Enzyme, PMA, LightSource) %>%
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_missing=sum(is.na(LogCopiespermLofMilk)),
+            n_total=n())
+
+write.table (SampleData.summary, "SampleData.summary.txt", sep="\t" )
+
+# Assessing the effect of Light Source
+m_LightSource1 <- glm( LogCopiespermLofMilk ~ LightSource, data=SampleData )
+summary(m_LightSource1)
+#No difference between Halogen light or BluV - Data is analyzed combined henceforth
+
+ggplot(data=SampleData,
+       mapping=aes(x=Enzyme,y=LogCopiespermLofMilk, color=BioRep, shape=BioRep)) +
+    ylab ("Log10 Copies / mL of Milk")+
+    geom_jitter(width=0.25)+
+  ggtitle("DNA Copy Numbers")+
+  theme_bw()+
+   theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("No", "1x", "10X"))+
+  facet_grid(. ~ TargetName)
+```
+
+# Bacterial Plate Counts
+```{r}
+#Data File: PlateCountData
+library(ggplot2)
+library(dplyr)
+library(emmeans)
+library(multcompView)
+
+#Read Data
+SPCdata <- read.table("CountData.txt", sep="\t",  fill = TRUE, header=TRUE)
+head(SPCdata)
+dim (SPCdata)
+
+#Summary Statistics
+mean(SPCdata$CFUmL)
+
+SPC.summary <- SPCdata %>%
+  group_by(MilkType, Buffer, Enzyme) %>%
+  summarize(mean_CFU=mean(CFUmL,na.rm=T),
+            st_dev=sd(CFUmL,na.rm=T),
+            n_missing=sum(is.na(CFUmL)),
+            n_total=n())
+SPC.summary
+
+# Assessing the effect of Buffer
+BufferData <- SPCdata %>% filter(MilkType=="Spiked")
+
+m_Buffer1 <- glm( LogCFUmL ~ Buffer, data=BufferData)
+summary(m_Buffer1)
+
+# Assessing the effect of Enzyme Concentration
+m_Enzyme1 <- glm( LogCFUmL ~ EnzymeConc, data=BufferData)
+summary(m_Enzyme1)
+
+ggplot(data=BufferData,
+       mapping=aes(x=Enzyme, y=LogCFUmL, color=BioRep)) +
+    ylab ("Log10 CFUs / mL of Milk")+
+    geom_jitter(width=0.25)+
+  ggtitle("Colony Forming Units")+
+  theme_bw()+
+   theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("No", "1x", "10X"))+
+  ylim(4, 7)
+
+```
