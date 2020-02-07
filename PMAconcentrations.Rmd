@@ -2,6 +2,8 @@
 title: "PMA concentration optimization"
 author: "ErikaGanda"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 ```{r}
 #Data File: DNAconcentrations
@@ -36,6 +38,7 @@ PMAPlot + geom_boxplot() +
   scale_colour_manual(values = c("black", "blue"))+
   theme(legend.title=element_blank())+
   xlab("PMA Concentration")+
+  ylab("Log10 Copies / mL of Milk")+
   theme(panel.grid.major = element_blank())+
   theme(panel.grid.minor = element_blank())+
   theme(panel.background = element_blank())+

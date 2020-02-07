@@ -1,7 +1,12 @@
 ---
 title: "Host Depletion Kit Comparisons"
 author: "ErikaGanda"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+editor_options: 
+  chunk_output_type: console
 ---
 ```{r}
 #Data File: OpenRefineHostDepletionData1.23.19
@@ -375,6 +380,7 @@ HostPlot + geom_boxplot() +
   scale_colour_manual(values = c("black", "blue"))+
   theme(legend.title=element_blank())+
   xlab("Kit")+
+  ylab("Log10 Copies / mL of Milk")+
   theme(panel.grid.major = element_blank())+
   theme(panel.grid.minor = element_blank())+
   theme(panel.background = element_blank())+
