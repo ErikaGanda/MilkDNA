@@ -47,4 +47,35 @@ PMAPlot + geom_boxplot() +
   theme(axis.text.x=element_text(angle=65,vjust=0.5))+
   ylim(2, 6.5)+
   scale_x_discrete(limits=c("NTC","0uM","10uM","20uM","40uM","50uM"))
+
+#Fitting Linear Models
+
+#Bovine
+
+#PMA concentrations
+BovinePMAData <- PMAData %>% filter(Target.Name =="BovineUXT")
+BovinePMAData <- BovinePMAData %>% filter(Wash =="Yes")
+m_Bovine.PMALogCopiesmLofMilk <- lm( LogCopiesmLmilk ~ PMA, data=BovinePMAData )
+summary(m_Bovine.PMALogCopiesmLofMilk)
+
+#Wash effect
+BovineWashPMAData <- PMAData %>% filter(Target.Name =="BovineUXT")
+BovineWashPMAData <- BovineWashPMAData %>% filter(PMA =="0")
+m_Bovine.WashPMALogCopiesmLofMilk <- lm( LogCopiesmLmilk ~ Wash, data=BovineWashPMAData )
+summary(m_Bovine.WashPMALogCopiesmLofMilk)
+
+#Total16S
+
+#PMA concentrations
+Total16SPMAData <- PMAData %>% filter(Target.Name =="Total16S")
+Total16SPMAData <- Total16SPMAData %>% filter(Wash =="Yes")
+m_Total16S.PMALogCopiesmLofMilk <- lm( LogCopiesmLmilk ~ PMA, data=Total16SPMAData )
+summary(m_Total16S.PMALogCopiesmLofMilk)
+
+#Wash effect
+Total16SWashPMAData <- PMAData %>% filter(Target.Name =="Total16S")
+Total16SWashPMAData <- Total16SWashPMAData %>% filter(PMA =="0")
+m_Total16S.WashPMALogCopiesmLofMilk <- lm( LogCopiesmLmilk ~ Wash, data=Total16SWashPMAData )
+summary(m_Total16S.WashPMALogCopiesmLofMilk)
+
 ```
