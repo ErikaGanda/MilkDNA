@@ -57,7 +57,7 @@ write.table (Bovine.summary, "Bovine.summary.txt", sep="\t" )
 
 ```{r}
 #Plot Raw Means and Standard Deviations
-Colors <- c("20uM" = "#d7191c", "Molz"= "#fdae61", "NEB"= "#ffffbf","NTC"= "#2c7bb6", "Qia"="#abd9e9")
+Colors <- c("20uM" = "#d7191c", "Molz"= "#a1d99b", "NEB"= "#feb24c","NTC"= "#bdbdbd", "Qia"="#2c7bb6")
 ggplot(data=Bovine,
        mapping=aes(x=Category,y=LogCopiespermLofMilk, color=Category, ylab="Copy Numbers")) +
   ylab ("Log10 Copies / mL of Milk")+
@@ -70,7 +70,8 @@ ggplot(data=Bovine,
   theme(panel.background = element_blank())+
   theme(panel.border = element_blank())+
   theme(axis.line = element_line())+
-  theme(axis.text.x=element_text(angle=25,vjust=0.5))
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("NTC", "NEB", "20uM", "Qia", "Molz"))
 
 ggplot(data=Bovine,
        mapping=aes(x=Category,y=LogCopiespermLofMilk, color=Category, shape=BioRep)) +
@@ -84,7 +85,8 @@ ggplot(data=Bovine,
   theme(panel.background = element_blank())+
   theme(panel.border = element_blank())+
   theme(axis.line = element_line())+
-  theme(axis.text.x=element_text(angle=25,vjust=0.5))
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("NTC", "NEB", "20uM", "Qia", "Molz"))
 
 ```
 
@@ -126,7 +128,7 @@ summary(m_Bovine.LogCopiespermLofMilk)
 plot(x=predict(m_Bovine.LogCopiespermLofMilk),y=resid(m_Bovine.LogCopiespermLofMilk), col=Bovine$Category)
   
   # using ggplot2
-Colors <- c("20uM" = "#d7191c", "Molz"= "#fdae61", "NEB"= "#ffffbf","NTC"= "#2c7bb6", "Qia"="#abd9e9")
+Colors <- c("20uM" = "#d7191c", "Molz"= "#a1d99b", "NEB"= "#feb24c","NTC"= "#bdbdbd", "Qia"="#2c7bb6")
 ggplot(m_Bovine.LogCopiespermLofMilk, aes(x=predict(m_Bovine.LogCopiespermLofMilk), y=resid(m_Bovine.LogCopiespermLofMilk), color=Category)) +
   geom_point()+
   theme_bw()+
@@ -164,7 +166,7 @@ emmeans(m_Bovine.LogCopiespermLofMilk,~ Category) %>%
   data.frame() 
 
 # Plot fitted values from model
-Colors <- c("20uM" = "#d7191c", "Molz"= "#fdae61", "NEB"= "#ffffbf","NTC"= "#2c7bb6", "Qia"="#abd9e9")
+Colors <- c("20uM" = "#d7191c", "Molz"= "#a1d99b", "NEB"= "#feb24c","NTC"= "#bdbdbd", "Qia"="#2c7bb6")
 
 emmeans(m_Bovine.LogCopiespermLofMilk,~Category) %>%
   summary() %>%
@@ -175,14 +177,16 @@ ggplot(aes(x=Category,y=emmean,color=Category)) +
   geom_errorbar(aes(ymin=lower.CL,ymax=upper.CL),width=0.5) +
   geom_text(data=data.frame(m_Bovine.LogCopiespermLofMilk_cld),aes(x=Category,label=`.group`),hjust=-.1) +
   theme_bw()+
- ggtitle("Bovine Copy Numbers - Inoculated Milk Only")+
+ ggtitle("Bovine Copy Numbers")+
   scale_color_manual(values=Colors)+
   theme(panel.grid.major = element_blank())+
   theme(panel.grid.minor = element_blank())+
   theme(panel.background = element_blank())+
   theme(panel.border = element_blank())+
   theme(axis.line = element_line())+
-  theme(axis.text.x=element_text(angle=25,vjust=0.5))
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("NTC", "NEB", "20uM", "Qia", "Molz"))
+ggsave("BovineKits.TIFF")
 ```
 
 
@@ -208,7 +212,7 @@ write.table (TotalBacterialDNA.summary, "TotalBacterialDNA.summary.txt", sep="\t
 
 ```{r}
 #Plot Raw Means and Standard Deviations
-Colors <- c("20uM" = "#d7191c", "Molz"= "#fdae61", "NEB"= "#ffffbf","NTC"= "#2c7bb6", "Qia"="#abd9e9")
+Colors <- c("20uM" = "#d7191c", "Molz"= "#a1d99b", "NEB"= "#feb24c","NTC"= "#bdbdbd", "Qia"="#2c7bb6")
 ggplot(data=TotalBacterialDNA,
        mapping=aes(x=Category,y=LogCopiespermLofMilk, color=Category, ylab="Copy Numbers")) +
   ylab ("Log10 Copies / mL of Milk")+
@@ -221,7 +225,8 @@ ggplot(data=TotalBacterialDNA,
   theme(panel.background = element_blank())+
   theme(panel.border = element_blank())+
   theme(axis.line = element_line())+
-  theme(axis.text.x=element_text(angle=25,vjust=0.5))
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("NTC", "NEB", "20uM", "Qia", "Molz"))
 
 ggplot(data=TotalBacterialDNA,
        mapping=aes(x=Category,y=LogCopiespermLofMilk, color=Category, shape=BioRep)) +
@@ -235,7 +240,8 @@ ggplot(data=TotalBacterialDNA,
   theme(panel.background = element_blank())+
   theme(panel.border = element_blank())+
   theme(axis.line = element_line())+
-  theme(axis.text.x=element_text(angle=25,vjust=0.5))
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("NTC", "NEB", "20uM", "Qia", "Molz"))
 
 ```
 
@@ -277,7 +283,7 @@ summary(m_TotalBacterialDNA.LogCopiespermLofMilk)
 plot(x=predict(m_TotalBacterialDNA.LogCopiespermLofMilk),y=resid(m_TotalBacterialDNA.LogCopiespermLofMilk), col=TotalBacterialDNA$Category)
   
   # using ggplot2
-Colors <- c("20uM" = "#d7191c", "Molz"= "#fdae61", "NEB"= "#ffffbf","NTC"= "#2c7bb6", "Qia"="#abd9e9")
+Colors <- c("20uM" = "#d7191c", "Molz"= "#a1d99b", "NEB"= "#feb24c","NTC"= "#bdbdbd", "Qia"="#2c7bb6")
 ggplot(m_TotalBacterialDNA.LogCopiespermLofMilk, aes(x=predict(m_TotalBacterialDNA.LogCopiespermLofMilk), y=resid(m_TotalBacterialDNA.LogCopiespermLofMilk), color=Category)) +
   geom_point()+
   theme_bw()+
@@ -315,7 +321,7 @@ emmeans(m_TotalBacterialDNA.LogCopiespermLofMilk,~ Category) %>%
   data.frame() 
 
 # Plot fitted values from model
-Colors <- c("20uM" = "#d7191c", "Molz"= "#fdae61", "NEB"= "#ffffbf","NTC"= "#2c7bb6", "Qia"="#abd9e9")
+Colors <- c("20uM" = "#d7191c", "Molz"= "#a1d99b", "NEB"= "#feb24c","NTC"= "#bdbdbd", "Qia"="#2c7bb6")
 
 emmeans(m_TotalBacterialDNA.LogCopiespermLofMilk,~Category) %>%
   summary() %>%
@@ -326,7 +332,7 @@ ggplot(aes(x=Category,y=emmean,color=Category)) +
   geom_errorbar(aes(ymin=lower.CL,ymax=upper.CL),width=0.5) +
   geom_text(data=data.frame(m_TotalBacterialDNA.LogCopiespermLofMilk_cld),aes(x=Category,label=`.group`),hjust=-.1) +
   theme_bw()+
- ggtitle("TotalBacterialDNA Copy Numbers - Inoculated Milk Only")+
+ ggtitle("Total Bacterial DNA Copy Numbers")+
   scale_color_manual(values=Colors)+
   theme(panel.grid.major = element_blank())+
   theme(panel.grid.minor = element_blank())+
@@ -334,7 +340,91 @@ ggplot(aes(x=Category,y=emmean,color=Category)) +
   theme(panel.border = element_blank())+
   theme(axis.line = element_line())+
   theme(axis.text.x=element_text(angle=25,vjust=0.5))+
-  scale_x_discrete(limits=c("NTC", "20uM", "Molz", "NEB", "Qia"))
+  scale_x_discrete(limits=c("NTC", "NEB", "20uM", "Qia", "Molz"))
+```
+
+### Bovine Raw Data + Final Model Output
+```{r}
+
+df1_Bovine.rawdata <- Bovine[c(20,30,23)]
+
+df2_Bovine.model<-emmeans(m_Bovine.LogCopiespermLofMilk,~Category) %>%
+  summary() %>%
+  data.frame()
+
+ggplot() +
+  geom_jitter(data=df1_Bovine.rawdata,aes(x=Category,y=LogCopiespermLofMilk)) +
+  geom_point(data=df2_Bovine.model,aes(x=Category,y=emmean,fill=Category))+
+  geom_errorbar(data=df2_Bovine.model,aes(x=Category,ymin=lower.CL,ymax=upper.CL),width=0.5)+
+  scale_x_discrete(limits=c("NTC", "NEB", "20uM", "Qia", "Molz"))
+  
+# Making the plot pretty
+
+Colors <- c("20uM" = "#d7191c", "Molz"= "#a1d99b", "NEB"= "#feb24c","NTC"= "#bdbdbd", "Qia"="#2c7bb6")
+  
+ggplot() +
+  geom_jitter(data=df1_Bovine.rawdata,aes(x=Category,y=LogCopiespermLofMilk,color=Category, shape=BioRep)) +
+  scale_color_manual(values=Colors)+
+  geom_point(data=df2_Bovine.model,aes(x=Category,y=emmean,fill=Category))+
+  geom_errorbar(data=df2_Bovine.model,aes(x=Category,ymin=lower.CL,ymax=upper.CL),width=0.5)+  
+  geom_text(data =data.frame(m_Bovine.LogCopiespermLofMilk_cld),aes(x=Category,label=`.group`, y=emmean),hjust=-.5) +
+ylim(1.5, 6.5)+
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Bovine Copy Numbers")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("NTC", "NEB", "20uM", "Qia", "Molz"))
+ggsave("BovineKitComparison.TIFF")
+```
+
+
+### Total Bacterial DNA Raw Data + Final Model Output
+```{r}
+
+df1_TotalBacterialDNA.rawdata <- TotalBacterialDNA[c(20,30,23)]
+
+df2_TotalBacterialDNA.model<-emmeans(m_TotalBacterialDNA.LogCopiespermLofMilk,~Category) %>%
+  summary() %>%
+  data.frame()
+
+ggplot() +
+  geom_jitter(data=df1_TotalBacterialDNA.rawdata,aes(x=Category,y=LogCopiespermLofMilk)) +
+  geom_point(data=df2_TotalBacterialDNA.model,aes(x=Category,y=emmean,fill=Category))+
+  geom_errorbar(data=df2_TotalBacterialDNA.model,aes(x=Category,ymin=lower.CL,ymax=upper.CL),width=0.5)+
+  scale_x_discrete(limits=c("NTC", "NEB", "20uM", "Qia", "Molz"))
+  
+# Making the plot pretty
+
+Colors <- c("20uM" = "#d7191c", "Molz"= "#a1d99b", "NEB"= "#feb24c","NTC"= "#bdbdbd", "Qia"="#2c7bb6")
+  
+ggplot() +
+  geom_jitter(data=df1_TotalBacterialDNA.rawdata,aes(x=Category,y=LogCopiespermLofMilk,color=Category, shape=BioRep)) +
+  scale_color_manual(values=Colors)+
+  geom_point(data=df2_TotalBacterialDNA.model,aes(x=Category,y=emmean,fill=Category))+
+  geom_errorbar(data=df2_TotalBacterialDNA.model,aes(x=Category,ymin=lower.CL,ymax=upper.CL),width=0.5)+  
+  geom_text(data =data.frame(m_Bovine.LogCopiespermLofMilk_cld),aes(x=Category,label=`.group`, y=emmean),hjust = 0, nudge_x = 0.09, nudge_y = 0.5) +
+ylim(1.5, 6.5)+
+xlab("Kit")+
+ylab ("Log10 Copies / mL of Milk")+
+  theme_bw()+
+  ggtitle("Total Bacterial DNA Copy Numbers")+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+scale_x_discrete(limits=c("NTC", "NEB", "20uM", "Qia", "Molz"))
+ggsave("TotalBacteriaKitComparison.TIFF", dpi = 300)
+
 ```
 
 ```{r}
@@ -343,7 +433,7 @@ library(dplyr)
 library(emmeans)
 
 # Plot fitted values from model
-Colors <- c("20uM" = "#d7191c", "Molz"= "#fdae61", "NEB"= "#ffffbf","NTC"= "#2c7bb6", "Qia"="#abd9e9")
+Colors <- c("20uM" = "#d7191c", "Molz"= "#a1d99b", "NEB"= "#feb24c","NTC"= "#bdbdbd", "Qia"="#2c7bb6")
 
 #Bovine
 df1_rawdata<-SampleData[c(29,6,20)]
@@ -370,14 +460,18 @@ ggplot(data=SampleData, mapping=aes(x=Cat.Target,y=LogCopiespermLofMilk))+
   theme(axis.text.x=element_text(angle=25,vjust=0.5))+
 scale_x_discrete(limits=c("NTC.Bacteria","NTC.Bovine", "PMA.Bacteria","PMA.Bovine","Molz.Bacteria","Molz.Bovine","NEB.Bacteria","NEB.Bovine","Qia.Bacteria","Qia.Bovine"))
 
-HostPlot <- ggplot(data=SampleData, aes(x=Cat.Target,y=LogCopiespermLofMilk))
+Colors <- c("20uM" = "#d7191c", "Molz"= "#a1d99b", "NEB"= "#feb24c","NTC"= "#bdbdbd", "Qia"="#2c7bb6")
+
+HostPlot <- ggplot(data=SampleData, aes(x=Cat.Target,y=LogCopiespermLofMilk, color=Category, fill=Target.Name))+
+   scale_fill_manual(values = c("gray", "white"))
+
 HostPlot + geom_boxplot() + 
   geom_dotplot(binaxis='y', 
                stackdir='center', 
                dotsize = .5) +
   theme_bw()+
-  aes(colour=factor(Target.Name))+
-  scale_colour_manual(values = c("black", "blue"))+
+  aes(colour=factor(Category))+
+  scale_colour_manual(values = Colors)+
   theme(legend.title=element_blank())+
   xlab("Kit")+
   ylab("Log10 Copies / mL of Milk")+
@@ -386,12 +480,12 @@ HostPlot + geom_boxplot() +
   theme(panel.background = element_blank())+
   theme(panel.border = element_blank())+
   theme(axis.line = element_line())+
-  theme(axis.text.x=element_text(angle=65,vjust=0.5))+
-  ylim(0, 7.5)+
-  scale_x_discrete(limits=c("NTC.Bacteria","NTC.Bovine"," ", "PMA.Bacteria","PMA.Bovine"," ","Molz.Bacteria","Molz.Bovine"," ","NEB.Bacteria","NEB.Bovine"," ","Qia.Bacteria","Qia.Bovine"))
+  theme(axis.text.x=element_text(angle=90,vjust=0.5))+
+  #ylim(0, 7.5)+
+  scale_x_discrete(limits=c("NTC.Bacteria","NTC.Bovine"," ", "NEB.Bacteria","NEB.Bovine"," ","PMA.Bacteria","PMA.Bovine"," ","Qia.Bacteria","Qia.Bovine"," ","Molz.Bacteria","Molz.Bovine"))
 
 
-
-
+ggsave("BovBactKitComparison.TIFF", dpi = 300)
 
 ```
+
