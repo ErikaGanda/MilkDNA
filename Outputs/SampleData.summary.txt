@@ -1,0 +1,25 @@
+"TargetName"	"MilkType"	"Buffer"	"Enzyme"	"PMA"	"LightSource"	"mean_LogCopiespermLofMilk"	"st_dev"	"n_missing"	"n_total"
+"1"	"BovineUXT"	"Spiked"	"Yes"	"10X"	"PMA"	"BLUV"	NA	NA	4	4
+"2"	"BovineUXT"	"Spiked"	"Yes"	"10X"	"PMA"	"Halogen"	3.43733891	0.142173345914325	2	4
+"3"	"BovineUXT"	"Spiked"	"Yes"	"1x"	"PMA"	"BLUV"	3.46454392966667	0.216347417013868	1	4
+"4"	"BovineUXT"	"Spiked"	"Yes"	"1x"	"PMA"	"Halogen"	3.839612687	0.0554740614057997	2	4
+"5"	"BovineUXT"	"Spiked"	"Yes"	"No"	"PMA"	"BLUV"	4.7794827975	0.121547102662765	0	4
+"6"	"BovineUXT"	"Spiked"	"Yes"	"No"	"PMA"	"Halogen"	5.1084548115	0.0254215543935757	0	2
+"7"	"Listeria-rpoB"	"Spiked"	"Yes"	"10X"	"PMA"	"BLUV"	5.2675	0.0556027577253742	0	4
+"8"	"Listeria-rpoB"	"Spiked"	"Yes"	"10X"	"PMA"	"Halogen"	5.27	0.107082522694727	0	4
+"9"	"Listeria-rpoB"	"Spiked"	"Yes"	"1x"	"PMA"	"BLUV"	5.2825	0.0518812747209114	0	4
+"10"	"Listeria-rpoB"	"Spiked"	"Yes"	"1x"	"PMA"	"Halogen"	5.2975	0.077190241179396	0	4
+"11"	"Listeria-rpoB"	"Spiked"	"Yes"	"No"	"PMA"	"BLUV"	5.1425	0.084212033977732	0	4
+"12"	"Listeria-rpoB"	"Spiked"	"Yes"	"No"	"PMA"	"Halogen"	5.24	0.15556349186104	0	2
+"13"	"Salmonella-rpoB"	"Spiked"	"Yes"	"10X"	"PMA"	"BLUV"	5.1080087585	0.0243296231315041	2	4
+"14"	"Salmonella-rpoB"	"Spiked"	"Yes"	"10X"	"PMA"	"Halogen"	5.1920302645	0.0989958608267574	2	4
+"15"	"Salmonella-rpoB"	"Spiked"	"Yes"	"1x"	"PMA"	"BLUV"	4.9806380405	0.62290605665413	0	4
+"16"	"Salmonella-rpoB"	"Spiked"	"Yes"	"1x"	"PMA"	"Halogen"	5.0352932555	0.776941791037787	0	4
+"17"	"Salmonella-rpoB"	"Spiked"	"Yes"	"No"	"PMA"	"BLUV"	6.026411951	0.0559881447336777	0	4
+"18"	"Salmonella-rpoB"	"Spiked"	"Yes"	"No"	"PMA"	"Halogen"	6.115991505	0.168117779609637	0	2
+"19"	"Total16S"	"Spiked"	"Yes"	"10X"	"PMA"	"BLUV"	5.2532767405	0.0689726438123621	0	4
+"20"	"Total16S"	"Spiked"	"Yes"	"10X"	"PMA"	"Halogen"	5.24603020575	0.0919367555199126	0	4
+"21"	"Total16S"	"Spiked"	"Yes"	"1x"	"PMA"	"BLUV"	5.32025234025	0.0756745797537999	0	4
+"22"	"Total16S"	"Spiked"	"Yes"	"1x"	"PMA"	"Halogen"	5.3470457585	0.105540771839518	0	4
+"23"	"Total16S"	"Spiked"	"Yes"	"No"	"PMA"	"BLUV"	5.54451195025	0.104442830077725	0	4
+"24"	"Total16S"	"Spiked"	"Yes"	"No"	"PMA"	"Halogen"	5.633141175	0.172003875844479	0	2

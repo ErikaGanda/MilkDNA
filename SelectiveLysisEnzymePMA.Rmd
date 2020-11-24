@@ -5,15 +5,17 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
-```{r}
+```{r LoadLibraries}
 #Data File: SelectiveLysisData
 library(ggplot2)
 library(dplyr)
 library(emmeans)
 library(multcompView)
+```
 
+```{r LoadData}
 #Read Data
-LysisData <- read.table("SelectiveLysisData.txt", sep="\t",  fill = TRUE, header=TRUE)
+LysisData <- read.table("Inputs/SelectiveLysisData.txt", sep="\t",  fill = TRUE, header=TRUE)
 head(LysisData)
 SampleData <- LysisData %>% filter(MilkType!="NegCTRL")
 SampleData <- SampleData%>% filter(MilkType!="10xNegCTRL")
@@ -23,7 +25,7 @@ SampleData <- SampleData%>% filter(FrozenGlycerol!="Yes")
 SampleData <- SampleData%>% filter(PMA!="No")
 dim (SampleData)
 
-write.table (SampleData, "SampleData.txt", sep="\t" )
+write.table (SampleData, "Outputs/SampleData.txt", sep="\t" )
 
 #Summary Statistics
 SampleData.summary <- SampleData %>%
@@ -33,7 +35,7 @@ SampleData.summary <- SampleData %>%
             n_missing=sum(is.na(LogCopiespermLofMilk)),
             n_total=n())
 
-write.table (SampleData.summary, "SampleData.summary.txt", sep="\t" )
+write.table (SampleData.summary, "Outputs/SampleData.summary.txt", sep="\t" )
 
 # Assessing the effect of Light Source
 m_LightSource1 <- glm( LogCopiespermLofMilk ~ LightSource, data=SampleData )
@@ -65,7 +67,7 @@ library(emmeans)
 library(multcompView)
 
 #Read Data
-SPCdata <- read.table("CountData.txt", sep="\t",  fill = TRUE, header=TRUE)
+SPCdata <- read.table("Inputs/CountData.txt", sep="\t",  fill = TRUE, header=TRUE)
 head(SPCdata)
 dim (SPCdata)
 
