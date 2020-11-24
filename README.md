@@ -14,7 +14,8 @@ ekg5387 at psu dot edu
 Overview:
 
 ## B. PMAconcentrations.Rmd
-Overview:
+Overview:  
+This script will load PMA concentration data, employ a linear model to identify dose dependent effects, and generate visualizations for the paper indicated above.
 
 ## C. SelectiveLysisEnzymePMA.Rmd
 Overview:
