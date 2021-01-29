@@ -10,6 +10,10 @@ Assistant Professor, Food Animal Microbiomes
 Pennsylvania State University  
 ganda at psu dot edu  
 
+# The figure below provides a study overview:
+Study overview. Each panel depicts the design for each aspect evaluated, with respective numbers of biological and technical replicates. The qPCR assays were performed in duplicate for each experimental replicate. Copy numbers were calculated for Bovine, Total 16S, Bacillus, Listeria, Mycobacterium, and Salmonella in (A); Bovine, Total 16S, Listeria, and Salmonella in (C), and only Bovine and Total 16S were calculated in (B) and (D) because no inoculation was performed.
+
+
 ![Ganda2021Figures1](https://user-images.githubusercontent.com/47567236/106322591-0cfae700-6244-11eb-828a-73937cb17182.jpg)
 
 ## A. DNAResults.Rmd			
