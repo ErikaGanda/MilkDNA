@@ -10,6 +10,8 @@ Assistant Professor, Food Animal Microbiomes
 Pennsylvania State University  
 ganda at psu dot edu  
 
+![Ganda2021Figures1](https://user-images.githubusercontent.com/47567236/106322591-0cfae700-6244-11eb-828a-73937cb17182.jpg)
+
 ## A. DNAResults.Rmd			
 Overview:  
 This script will load qPCR results on DNA extraction with various methods data, employ models to compare estimated marginal mean log copy numbers between methods, and generate visualizations for the paper indicated above.
