@@ -42,3 +42,7 @@ QuantiT.summary <- AllData %>%
             n_total=n())
 write.table (QuantiT.summary, "QuantiT.summary.txt", sep="\t" ) 
 ```
+
+```{r}
+sessionInfo()
+```

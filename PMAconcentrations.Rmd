@@ -5,19 +5,15 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
-
-## Objective:
-This script will load PMA concentration data, employ a linear model to identify dose dependent effects, and generate visualizations
-
 ```{r}
-#Data File: DNAconcentrations
+#Data File: PMAconcentration
 library(ggplot2)
 library(dplyr)
 library(emmeans)
 library(multcompView)
 
 #Read Data
-PMAData <- read.table("Inputs/PMAconcentration.txt", sep="\t",  fill = TRUE, header=TRUE)
+PMAData <- read.table("PMAconcentration.txt", sep="\t",  fill = TRUE, header=TRUE)
 dim (PMAData)
 
 #Getting All variables and all levels within each
@@ -29,7 +25,7 @@ PMAConc.summary <- PMAData %>%
             st_dev=sd(caclLogCopiesmLmilk,na.rm=T),
             n_missing=sum(is.na(caclLogCopiesmLmilk)),
             n_total=n())
-write.table (PMAConc.summary, "Outputs/PMAConc.summary.txt", sep="\t" ) 
+write.table (PMAConc.summary, "PMAConc.summary.txt", sep="\t" ) 
 
 PMAPlot <- ggplot(data=PMAData, aes(x=ConcentrationCAT,y=caclLogCopiesmLmilk))
 PMAPlot + geom_boxplot() + 
@@ -50,8 +46,74 @@ PMAPlot + geom_boxplot() +
   theme(axis.line = element_line())+
   theme(axis.text.x=element_text(angle=65,vjust=0.5))+
   ylim(2, 6.5)+
+  scale_x_discrete(limits=c("UTC","0uM","10uM","20uM","40uM","50uM"))
+
+PMAPlot <- ggplot(data=PMAData, aes(x=ConcentrationCAT,y=caclLogCopiesmLmilk))
+PMAPlot + geom_jitter() + 
+  theme_bw()+
+  aes(colour=factor(Target.Name), shape=Bio)+
+  scale_shape_discrete(solid=F) +
+  facet_wrap(vars(Target.Name))+
+  scale_colour_manual(values = c("black", "blue"))+
+  theme(legend.title=element_blank())+
+  xlab("PMA Concentration")+
+  ylab("Log10 Copies / mL of Milk")+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=65,vjust=0.5))+
+  ylim(2, 6.5)+
+  scale_x_discrete(limits=c("UTC","0uM","10uM","20uM","40uM","50uM"))
+
+```
+
+```{r}
+
+ggplot(data=PMAData, aes(x=ConcentrationCAT,y=caclLogCopiesmLmilk))+
+  geom_boxplot(aes(color=Target.Name),position=position_dodge(0.2)) +
+  geom_point(aes(shape=Bio),size=1, position=position_jitterdodge(jitter.width=.0, dodge.width = .9))+
+  theme_bw()+
+  aes(colour=factor(Target.Name))+
+     scale_shape_discrete(solid=F) +
+  #facet_wrap(vars(Target.Name))+
+  scale_colour_manual(values = c("black", "blue"))+
+  theme(legend.title=element_blank())+
+  xlab("PMA Concentration")+
+  ylab("Log10 Copies / mL of Milk")+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(vjust=0.5))+
+  #ylim(2, 6)+
+  scale_x_discrete(limits=c("UTC","0uM","10uM","20uM","40uM","50uM"))
+
+ggplot(data=PMAData, aes(x=ConcentrationCAT,y=caclLogCopiesmLmilk))+
+  geom_boxplot(colour="grey50") +
+  geom_jitter(width=0.2, size=1)+
+  theme_bw()+
+  aes(colour=factor(Target.Name))+
+  facet_wrap(vars(Target.Name))+
+  scale_colour_manual(values = c("black", "blue"))+
+  theme(legend.title=element_blank())+
+  xlab("PMA Concentration")+
+  ylab("Log10 Copies / mL of Milk")+
+  theme(panel.grid.major = element_blank()) +
+  theme(panel.grid.minor = element_blank()) +
+  theme(panel.background = element_blank()) +
+  theme(panel.border = element_blank()) +
+  theme(axis.line = element_line()) +
+  theme(axis.text.x=element_text(angle=65,vjust=0.5))+
+  ylim(2, 6)+
   scale_x_discrete(limits=c("NTC","0uM","10uM","20uM","40uM","50uM"))
 
+```
+
+
+```{r}
 #Fitting Linear Models
 
 #Bovine
@@ -82,4 +144,122 @@ Total16SWashPMAData <- Total16SWashPMAData %>% filter(PMA =="0")
 m_Total16S.WashPMALogCopiesmLofMilk <- lm( LogCopiesmLmilk ~ Wash, data=Total16SWashPMAData )
 summary(m_Total16S.WashPMALogCopiesmLofMilk)
 
+```
+
+***
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+<p style="color:blue;font-size:40px;">Manuscript Figures</p>
+</div>
+
+***
+
+```{r}
+PMAColors <- c("UTC_Bovine" = "#848484", 
+            "UTC_Total16S"= "#848484",
+            "0uM_Bovine" = "#2F9C7E", 
+            "0uM_Total16S"= "#2F9C7E",
+            "10uM_Bovine" = "#FAC3B2", 
+            "10uM_Total16S"= "#FAC3B2",
+            "20uM_Bovine" = "#F19C7D", 
+            "20uM_Total16S"= "#F19C7D",
+            "40uM_Bovine" = "#F67D4B", 
+            "40uM_Total16S"= "#F67D4B",
+            "50uM_Bovine" = "#EF6831", 
+            "50uM_Total16S"= "#EF6831")
+
+
+BacteriaData <- PMAData %>% filter(Target.Name =="Total16S")
+
+ggplot() + 
+  geom_boxplot(data=BacteriaData, aes(x=ConcentrationCAT,y=caclLogCopiesmLmilk), colour = "#b2b2b2", show.legend = F)+
+   scale_fill_manual(values = c("lightgray", "white"))+
+  geom_point(data=BacteriaData, aes(x=ConcentrationCAT,y=caclLogCopiesmLmilk, shape=Bio, color=Conc.Target),position=position_jitterdodge(jitter.width=0, dodge.width = .7), show.legend = F) + 
+  theme_bw()+
+  scale_shape_discrete(solid=F) +
+  scale_colour_manual(values = PMAColors)+
+  theme(legend.title=element_blank())+
+  xlab(NULL)+
+  ylab(NULL)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  ylim(2, 6.5)+
+  scale_x_discrete(limits=c("UTC","0uM","   ", "10uM","20uM","40uM","50uM" ))
+ggsave("PMAconcentrations-A-Bacteria.TIFF", width = 3.5, height = 3 , units = "in", dpi = 600)
+
+
+BovineData <- PMAData %>% filter(Target.Name =="BovineUXT")
+
+ggplot() + 
+  geom_boxplot(data=BovineData, aes(x=ConcentrationCAT,y=caclLogCopiesmLmilk), colour = "#b2b2b2", show.legend = F)+
+   scale_fill_manual(values = c("lightgray", "white"))+
+  geom_point(data=BovineData, aes(x=ConcentrationCAT,y=caclLogCopiesmLmilk, shape=Bio, color=Conc.Target),position=position_jitterdodge(jitter.width=0, dodge.width = .7), show.legend = F) + 
+  theme_bw()+
+  scale_shape_discrete(solid=F) +
+  scale_colour_manual(values = PMAColors)+
+  theme(legend.title=element_blank())+
+  xlab(NULL)+
+  ylab(NULL)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+    ylim(2, 6.5)+
+  scale_x_discrete(limits=c("UTC","0uM", "   ","10uM","20uM","40uM","50uM" ))
+ggsave("PMAconcentrations-A-Bovine.TIFF", width = 3.5, height = 3 , units = "in", dpi = 600)
+
+
+ggplot() + 
+  geom_boxplot(data=PMAData, aes(x=Conc.Target,y=caclLogCopiesmLmilk), colour = "#b2b2b2", show.legend = F)+
+   scale_fill_manual(values = c("lightgray", "white"))+
+  geom_point(data=PMAData, aes(x=Conc.Target,y=caclLogCopiesmLmilk, shape=Bio, color=Conc.Target),position=position_jitterdodge(jitter.width=0, dodge.width = .7), show.legend = F) + 
+  theme_bw()+
+  scale_shape_discrete(solid=F) +
+  scale_colour_manual(values = PMAColors)+
+  theme(legend.title=element_blank())+
+  xlab(NULL)+
+  ylab(NULL)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=65,vjust=0.5))+
+  ylim(2, 6.5)+
+   scale_x_discrete(limits=c("UTC_Total16S","0uM_Total16S", "  ", "10uM_Total16S","20uM_Total16S","40uM_Total16S","50uM_Total16S", "  ", "  ","UTC_Bovine", "0uM_Bovine", "  ", "10uM_Bovine","20uM_Bovine","40uM_Bovine","50uM_Bovine" ))
+  
+ggsave("PMAconcentrations-A.TIFF", width = 7, height = 3 , units = "in", dpi = 600)
+
+ggplot()+
+geom_boxplot(data=PMAData,aes(x=Conc.Target, y=LogCopiesmLmilk, fill=Target.Name), show.legend = F)+
+geom_point(data=PMAData, aes(x=Conc.Target,y=LogCopiesmLmilk, shape=Bio, color=Conc.Target), size = 1.5, stroke = 1, position=position_jitterdodge(jitter.width=0.05, dodge.width = 1), show.legend = F)+
+  scale_shape(solid = F)+
+   scale_fill_manual(values = c("lightgray", "white"))+
+  theme_bw()+
+  scale_colour_manual(values = PMAColors)+
+  theme(legend.title=element_blank())+
+  xlab(NULL)+
+  ylab(NULL)+
+  ylim(1.5, 6)+
+  theme(panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  panel.background = element_blank(),
+  panel.border = element_blank(),
+  axis.line = element_line(),
+  axis.text.x=element_text(angle=90,vjust=0.5))+
+ scale_x_discrete(limits=c("UTC_Total16S","UTC_Bovine","  ","  ","0uM_Total16S", "0uM_Bovine","  ","  ", "10uM_Total16S","10uM_Bovine","  ","  ","20uM_Total16S","20uM_Bovine","  ","  ","40uM_Total16S",    "40uM_Bovine","  ","  ","50uM_Total16S", "50uM_Bovine"))
+  
+  
+ggsave("PMAconcentrations-B.TIFF", width = 7, height = 3 , units = "in", dpi = 600)
+```
+
+
+```{r}
+sessionInfo()
 ```

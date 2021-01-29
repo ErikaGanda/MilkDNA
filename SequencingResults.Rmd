@@ -25,3 +25,6 @@ SequencingSummary <- SeqData %>%
 write.table (SequencingSummary, "SequencingSummary.txt", sep="\t" )
 ```
 
+```{r}
+sessionInfo()
+```

@@ -5,17 +5,15 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
-```{r LoadLibraries}
+```{r}
 #Data File: SelectiveLysisData
 library(ggplot2)
 library(dplyr)
 library(emmeans)
 library(multcompView)
-```
 
-```{r LoadData}
 #Read Data
-LysisData <- read.table("Inputs/SelectiveLysisData.txt", sep="\t",  fill = TRUE, header=TRUE)
+LysisData <- read.table("SelectiveLysisData.txt", sep="\t",  fill = TRUE, header=TRUE)
 head(LysisData)
 SampleData <- LysisData %>% filter(MilkType!="NegCTRL")
 SampleData <- SampleData%>% filter(MilkType!="10xNegCTRL")
@@ -25,7 +23,7 @@ SampleData <- SampleData%>% filter(FrozenGlycerol!="Yes")
 SampleData <- SampleData%>% filter(PMA!="No")
 dim (SampleData)
 
-write.table (SampleData, "Outputs/SampleData.txt", sep="\t" )
+write.table (SampleData, "SampleData.txt", sep="\t" )
 
 #Summary Statistics
 SampleData.summary <- SampleData %>%
@@ -35,27 +33,56 @@ SampleData.summary <- SampleData %>%
             n_missing=sum(is.na(LogCopiespermLofMilk)),
             n_total=n())
 
-write.table (SampleData.summary, "Outputs/SampleData.summary.txt", sep="\t" )
+write.table (SampleData.summary, "SampleData.summary.txt", sep="\t" )
 
 # Assessing the effect of Light Source
 m_LightSource1 <- glm( LogCopiespermLofMilk ~ LightSource, data=SampleData )
 summary(m_LightSource1)
 #No difference between Halogen light or BluV - Data is analyzed combined henceforth
 
-ggplot(data=SampleData,
-       mapping=aes(x=Enzyme,y=LogCopiespermLofMilk, color=BioRep)) +
+# Assessing the effect of Enzyme Concentration
+## Bovine
+BovineData <- SampleData %>% filter(Assay=="Bovine")
+m_EnzymeBovine <- glm( LogCopiespermLofMilk ~ EnzymeNum, data=BovineData )
+summary(m_EnzymeBovine)
+
+## Listeria
+ListeriaData <- SampleData %>% filter(Assay=="Listeria-rpoB")
+m_EnzymeListeria <- glm( LogCopiespermLofMilk ~ EnzymeNum, data=ListeriaData )
+summary(m_EnzymeListeria)
+
+## Salmonella
+SalmonellaData <- SampleData %>% filter(Assay=="Salmonella-rpoB")
+m_EnzymeSalmonella <- glm( LogCopiespermLofMilk ~ EnzymeNum, data=SalmonellaData )
+summary(m_EnzymeSalmonella)
+
+## Total16S
+BacteriaData <- SampleData %>% filter(Assay=="Total16S")
+m_EnzymeBacteria <- glm( LogCopiespermLofMilk ~ EnzymeNum, data=BacteriaData )
+summary(m_EnzymeBacteria)
+
+
+Colors <- c("No" = "#36C497", "1x"= "#E4A0CE", "10X"= "#A70D76")
+
+ggplot()+
+  geom_point(data=SampleData,
+       mapping=aes(x=Enzyme,y=LogCopiespermLofMilk, shape=BioRep, color=Enzyme),size = 2, stroke = .7, position=position_jitterdodge(jitter.width=0, dodge.width = .5),show.legend = F) +
+     scale_shape_discrete(solid=F) +
     ylab ("Log10 Copies / mL of Milk")+
-    geom_jitter(width=0.25)+
+    scale_color_manual(values=Colors)+
     ggtitle("DNA Copy Numbers")+
-  #theme_bw()+
+  theme_bw()+
+  ylim(2,7)+
   theme(panel.grid.major = element_blank())+
   theme(panel.grid.minor = element_blank())+
-  #theme(panel.background = element_blank())+
+  theme(panel.background = element_blank())+
   theme(panel.border = element_blank())+
   theme(axis.line = element_line())+
   theme(axis.text.x=element_text(angle=25,vjust=0.5))+
   scale_x_discrete(limits=c("No", "1x", "10X"))+
   facet_grid(. ~ TargetName)
+ggsave("EnzymePMA-Targets.TIFF", width = 4, height = 3.5 , units = "in", dpi = 600)
+
 ```
 
 # Bacterial Plate Counts
@@ -67,7 +94,7 @@ library(emmeans)
 library(multcompView)
 
 #Read Data
-SPCdata <- read.table("Inputs/CountData.txt", sep="\t",  fill = TRUE, header=TRUE)
+SPCdata <- read.table("CountData.txt", sep="\t",  fill = TRUE, header=TRUE)
 head(SPCdata)
 dim (SPCdata)
 
@@ -92,19 +119,27 @@ summary(m_Buffer1)
 m_Enzyme1 <- glm( LogCFUmL ~ EnzymeConc, data=BufferData)
 summary(m_Enzyme1)
 
-ggplot(data=BufferData,
-       mapping=aes(x=Enzyme, y=LogCFUmL, color=BioRep)) +
+ggplot()+
+  geom_point(data=BufferData,
+       mapping=aes(x=Enzyme, y=LogCFUmL, shape=BioRep, color=Enzyme),size = 2, stroke = .7, position=position_jitterdodge(jitter.width=0.1, dodge.width = .5),show.legend = F) +
+  scale_shape_discrete(solid=F) +
     ylab ("Log10 CFUs / mL of Milk")+
     geom_jitter(width=0.25)+
   ggtitle("Colony Forming Units")+
-  #theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme_bw()+
   theme(panel.grid.major = element_blank())+
   theme(panel.grid.minor = element_blank())+
-  #theme(panel.background = element_blank())+
+  theme(panel.background = element_blank())+
   theme(panel.border = element_blank())+
   theme(axis.line = element_line())+
   theme(axis.text.x=element_text(angle=25,vjust=0.5))+
   scale_x_discrete(limits=c("No", "1x", "10X"))+
-  ylim(4.5, 6)
+  ylim(2, 7)
+ggsave("EnzymePMA-CFU.TIFF", width = 4, height = 3.5 , units = "in", dpi = 600)
 
+```
+
+```{r}
+sessionInfo()
 ```
