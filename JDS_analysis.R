@@ -48,7 +48,7 @@ zero_tab <- dat %>%
 zero_tab # just see what it looks like
 
 # Then write output
-write.table(zero_tab, file="zeros_summary.tsv", sep="\t\t", row.names = FALSE)
+write.table(zero_tab, file="na_summary.tsv", sep="\t\t", row.names = FALSE)
 
 
 # Linear model ------------------------------------------------------------
