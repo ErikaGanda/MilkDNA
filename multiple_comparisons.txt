@@ -1,0 +1,187 @@
+$`Bacillus wiedmannii`
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: User-defined Contrasts
+
+
+Fit: lm(formula = LogCopiespermLofMilk ~ VariableKit * SpikeSet - 
+    1, data = .x)
+
+Linear Hypotheses:
+                          Estimate Std. Error t value Pr(>|t|)    
+Mastitis - COREDNA == 0    0.41485    0.05055   8.207 5.33e-10 ***
+Pfood - COREDNA == 0      -0.33367    0.05302  -6.294 1.62e-05 ***
+PSoilP - COREDNA == 0     -0.81578    0.05055 -16.138  < 2e-16 ***
+PviralDNA - COREDNA == 0  -0.60798    0.05055 -12.028  < 2e-16 ***
+ZymoDNA - COREDNA == 0    -0.09866    0.05055  -1.952  1.00000    
+Pfood - Mastitis == 0     -0.74852    0.05302 -14.119  < 2e-16 ***
+PSoilP - Mastitis == 0    -1.23064    0.05055 -24.345  < 2e-16 ***
+PviralDNA - Mastitis == 0 -1.02283    0.05055 -20.234  < 2e-16 ***
+ZymoDNA - Mastitis == 0   -0.51351    0.05055 -10.159 4.72e-14 ***
+PSoilP - Pfood == 0       -0.48211    0.05302  -9.094 6.10e-12 ***
+PviralDNA - Pfood == 0    -0.27431    0.05302  -5.174  0.00127 ** 
+ZymoDNA - Pfood == 0       0.23501    0.05302   4.433  0.03384 *  
+PviralDNA - PSoilP == 0    0.20780    0.05055   4.111  0.10425    
+ZymoDNA - PSoilP == 0      0.71712    0.05055  14.187  < 2e-16 ***
+ZymoDNA - PviralDNA == 0   0.50932    0.05055  10.076 4.72e-14 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- single-step method)
+
+
+$`Bovine DNA`
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: User-defined Contrasts
+
+
+Fit: lm(formula = LogCopiespermLofMilk ~ VariableKit * SpikeSet - 
+    1, data = .x)
+
+Linear Hypotheses:
+                          Estimate Std. Error t value Pr(>|t|)    
+Mastitis - COREDNA == 0   -0.17370    0.05311  -3.270 1.000000    
+Pfood - COREDNA == 0      -0.63477    0.05311 -11.952  < 2e-16 ***
+PSoilP - COREDNA == 0     -1.67780    0.05311 -31.590  < 2e-16 ***
+PviralDNA - COREDNA == 0  -0.28450    0.05311  -5.357 0.000926 ***
+ZymoDNA - COREDNA == 0    -0.68009    0.05311 -12.805  < 2e-16 ***
+Pfood - Mastitis == 0     -0.46107    0.05311  -8.681 1.93e-10 ***
+PSoilP - Mastitis == 0    -1.50410    0.05311 -28.320  < 2e-16 ***
+PviralDNA - Mastitis == 0 -0.11080    0.05311  -2.086 1.000000    
+ZymoDNA - Mastitis == 0   -0.50639    0.05311  -9.535 1.10e-12 ***
+PSoilP - Pfood == 0       -1.04303    0.05311 -19.639  < 2e-16 ***
+PviralDNA - Pfood == 0     0.35027    0.05311   6.595 6.99e-06 ***
+ZymoDNA - Pfood == 0      -0.04532    0.05311  -0.853 1.000000    
+PviralDNA - PSoilP == 0    1.39330    0.05311  26.234  < 2e-16 ***
+ZymoDNA - PSoilP == 0      0.99771    0.05311  18.785  < 2e-16 ***
+ZymoDNA - PviralDNA == 0  -0.39559    0.05311  -7.448 2.51e-08 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- single-step method)
+
+
+$`Mycobacterium smegmatis`
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: User-defined Contrasts
+
+
+Fit: lm(formula = LogCopiespermLofMilk ~ VariableKit * SpikeSet - 
+    1, data = .x)
+
+Linear Hypotheses:
+                          Estimate Std. Error t value Pr(>|t|)    
+Mastitis - COREDNA == 0   -0.27767    0.05453  -5.093 0.002472 ** 
+Pfood - COREDNA == 0      -0.57479    0.05453 -10.542  < 2e-16 ***
+PSoilP - COREDNA == 0     -2.07325    0.05453 -38.024  < 2e-16 ***
+PviralDNA - COREDNA == 0  -0.61879    0.05453 -11.349  < 2e-16 ***
+ZymoDNA - COREDNA == 0    -0.89283    0.05453 -16.375  < 2e-16 ***
+Pfood - Mastitis == 0     -0.29712    0.05453  -5.449 0.000689 ***
+PSoilP - Mastitis == 0    -1.79558    0.05453 -32.931  < 2e-16 ***
+PviralDNA - Mastitis == 0 -0.34112    0.05453  -6.256 9.78e-06 ***
+ZymoDNA - Mastitis == 0   -0.61516    0.05453 -11.282  < 2e-16 ***
+PSoilP - Pfood == 0       -1.49845    0.05453 -27.482  < 2e-16 ***
+PviralDNA - Pfood == 0    -0.04399    0.05453  -0.807 1.000000    
+ZymoDNA - Pfood == 0      -0.31804    0.05453  -5.833 8.91e-05 ***
+PviralDNA - PSoilP == 0    1.45446    0.05453  26.675  < 2e-16 ***
+ZymoDNA - PSoilP == 0      1.18041    0.05453  21.649  < 2e-16 ***
+ZymoDNA - PviralDNA == 0  -0.27404    0.05453  -5.026 0.003485 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- single-step method)
+
+
+$`Salmonella sp.`
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: User-defined Contrasts
+
+
+Fit: lm(formula = LogCopiespermLofMilk ~ VariableKit * SpikeSet - 
+    1, data = .x)
+
+Linear Hypotheses:
+                          Estimate Std. Error t value Pr(>|t|)    
+Mastitis - COREDNA == 0   -0.96608    0.06236 -15.492  < 2e-16 ***
+Pfood - COREDNA == 0      -1.59405    0.06236 -25.561  < 2e-16 ***
+PSoilP - COREDNA == 0     -2.70837    0.06236 -43.430  < 2e-16 ***
+PviralDNA - COREDNA == 0  -0.38410    0.06236  -6.159 2.93e-05 ***
+ZymoDNA - COREDNA == 0    -1.42101    0.06236 -22.787  < 2e-16 ***
+Pfood - Mastitis == 0     -0.62797    0.06236 -10.070 1.32e-13 ***
+PSoilP - Mastitis == 0    -1.74229    0.06236 -27.938  < 2e-16 ***
+PviralDNA - Mastitis == 0  0.58197    0.06236   9.332 2.49e-12 ***
+ZymoDNA - Mastitis == 0   -0.45493    0.06236  -7.295 3.26e-08 ***
+PSoilP - Pfood == 0       -1.11432    0.06236 -17.869  < 2e-16 ***
+PviralDNA - Pfood == 0     1.20994    0.06236  19.402  < 2e-16 ***
+ZymoDNA - Pfood == 0       0.17304    0.06236   2.775        1    
+PviralDNA - PSoilP == 0    2.32427    0.06236  37.271  < 2e-16 ***
+ZymoDNA - PSoilP == 0      1.28736    0.06236  20.643  < 2e-16 ***
+ZymoDNA - PviralDNA == 0  -1.03690    0.06236 -16.627  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- single-step method)
+
+
+$`Total Bacterial DNA`
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: User-defined Contrasts
+
+
+Fit: lm(formula = LogCopiespermLofMilk ~ VariableKit * SpikeSet - 
+    1, data = .x)
+
+Linear Hypotheses:
+                          Estimate Std. Error t value Pr(>|t|)    
+Mastitis - COREDNA == 0     0.2406     0.1126   2.136 1.000000    
+Pfood - COREDNA == 0       -0.4885     0.1126  -4.336 0.043150 *  
+PSoilP - COREDNA == 0      -0.8668     0.1126  -7.695 7.18e-09 ***
+PviralDNA - COREDNA == 0   -0.3731     0.1126  -3.312 1.000000    
+ZymoDNA - COREDNA == 0     -0.2190     0.1126  -1.944 1.000000    
+Pfood - Mastitis == 0      -0.7290     0.1126  -6.472 2.75e-06 ***
+PSoilP - Mastitis == 0     -1.1074     0.1126  -9.830 4.44e-13 ***
+PviralDNA - Mastitis == 0  -0.6137     0.1126  -5.448 0.000514 ***
+ZymoDNA - Mastitis == 0    -0.4596     0.1126  -4.080 0.114226    
+PSoilP - Pfood == 0        -0.3783     0.1126  -3.359 1.000000    
+PviralDNA - Pfood == 0      0.1154     0.1126   1.024 1.000000    
+ZymoDNA - Pfood == 0        0.2695     0.1126   2.392 1.000000    
+PviralDNA - PSoilP == 0     0.4937     0.1126   4.383 0.038627 *  
+ZymoDNA - PSoilP == 0       0.6478     0.1126   5.751 0.000148 ***
+ZymoDNA - PviralDNA == 0    0.1541     0.1126   1.368 1.000000    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- single-step method)
+
+
+$`Listeria monocytogenes`
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: User-defined Contrasts
+
+
+Fit: lm(formula = LogCopiespermLofMilk ~ VariableKit * SpikeSet - 
+    1, data = .x)
+
+Linear Hypotheses:
+                        Estimate Std. Error t value Pr(>|t|)    
+Mastitis - COREDNA == 0  0.92429    0.05755  16.060  < 2e-16 ***
+Pfood - COREDNA == 0     0.26504    0.05755   4.605    0.011 *  
+PSoilP - COREDNA == 0   -0.40627    0.06036  -6.730 1.35e-06 ***
+ZymoDNA - COREDNA == 0   0.22091    0.05755   3.838    0.185    
+Pfood - Mastitis == 0   -0.65925    0.05755 -11.454  < 2e-16 ***
+PSoilP - Mastitis == 0  -1.33056    0.06036 -22.043  < 2e-16 ***
+ZymoDNA - Mastitis == 0 -0.70338    0.05755 -12.221  < 2e-16 ***
+PSoilP - Pfood == 0     -0.67131    0.06036 -11.121  < 2e-16 ***
+ZymoDNA - Pfood == 0    -0.04413    0.05755  -0.767    1.000    
+ZymoDNA - PSoilP == 0    0.62718    0.06036  10.390 6.89e-13 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- single-step method)
+
+
