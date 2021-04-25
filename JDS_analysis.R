@@ -140,7 +140,7 @@ pvalues_adjusted <- comps %>%
   map("pvalues") %>%
   map(~data.frame(pvalue = .x)) %>%
   bind_rows(.id="assay") %>%
-  mutate(pval = p.adjust(pvalue)) %>%
+  mutate(pval = p.adjust(pvalue, method="bonferroni")) %>%
   split(.$assay) %>%
   map(~pull(.x, pval))
 
