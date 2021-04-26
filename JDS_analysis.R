@@ -117,7 +117,7 @@ comps <- lms[-3] %>%
 # Handle case 3 specially due to missingness
 compl <- comparisons
 tmp <- grep("viral", comparisons)
-compl <- compl[-tmp]
+compl <- compl[-tmp] # TMP COMMENT 
 rm(tmp)
 #hacking multcomp to make it work - this is a bug in their error checking
 tmp_vcov <- vcov(lms[[3]])
