@@ -18,7 +18,7 @@ Study overview. Each panel depicts the design for each aspect evaluated, with re
 
 ## A. DNAResults.Rmd			
 Overview:  
-This script will load qPCR results on DNA extraction with various methods data, employ models to compare estimated marginal mean log copy numbers between methods, and generate visualizations for the paper indicated above.
+This script will load qPCR results on DNA extraction with various methods, provide descriptive statistics, and generate visualizations for the paper indicated above. Linear model including all interactions is employed in `JDS_analysis.R`.
 
 Experimental design is described in panel A of figure 1.
 
