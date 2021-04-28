@@ -130,7 +130,7 @@ comps[[names(dat)[3]]] <- glht(lms[[3]], mcp(VariableKit = compl), vcov.=tmp_vco
 
 # Now summarise results
 comps <- comps %>%
-  map(summary)
+  map(~summary(.x, test=univariate()))
 
 
 ## Comps is then the key thing to use and investigate for reports.
@@ -148,7 +148,19 @@ for (s in names(pvalues_adjusted)) {
   comps[[s]]$test$pvalues <- pvalues_adjusted[[s]]
 }
 
+## Create Compact letter display for Erika
+## Need more hacking - cld doesn't recognize fully pairwise comparisons
+for (i in seq_along(comps)){
+  comps[[i]]$type <- "Tukey" # this is what we are doing in practice
+}
+## Note, this is giving different compact letter displays for each assay
+sink(file="clds.txt")
+map(comps, cld)
+sink()
+
+
 ## Now write results to file
 sink(file="multiple_comparisons.txt")
+# All Pvalues have been globally adjusted using Bonferroni
 comps
 sink()

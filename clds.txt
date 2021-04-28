@@ -1,0 +1,26 @@
+> map(comps, cld)
+$`Bacillus wiedmannii`
+  COREDNA  Mastitis     Pfood    PSoilP PviralDNA   ZymoDNA 
+      "c"       "e"       "b"       "a"       "d"       "c" 
+
+$`Bovine DNA`
+  COREDNA  Mastitis     Pfood    PSoilP PviralDNA   ZymoDNA 
+      "d"      "cd"       "b"       "a"       "c"       "b" 
+
+$`Mycobacterium smegmatis`
+  COREDNA  Mastitis     Pfood    PSoilP PviralDNA   ZymoDNA 
+      "e"       "d"       "b"       "a"       "b"       "c" 
+
+$`Salmonella sp.`
+  COREDNA  Mastitis     Pfood    PSoilP PviralDNA   ZymoDNA 
+      "e"       "d"       "b"       "a"       "c"       "b" 
+
+$`Total Bacterial DNA`
+  COREDNA  Mastitis     Pfood    PSoilP PviralDNA   ZymoDNA 
+     "cd"       "d"      "ab"       "a"      "bc"      "bc" 
+
+$`Listeria monocytogenes`
+  COREDNA  Mastitis     Pfood    PSoilP PviralDNA   ZymoDNA 
+      "d"       "c"       "b"       "a"       "e"       "c" 
+
+> sink()
