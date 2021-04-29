@@ -43,7 +43,7 @@ Bovine.Inn.Ctrl <- Bovine %>% filter(VariableSampleType!="NP40InoculatedMilk")
 
 Bovine.InnOnly <- Bovine %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
 Bovine.InnOnly %>%
-  group_by(VariableSampleType, VariableSpikeSet, VariableKit) %>%
+  group_by(VariableSpikeSet, VariableKit) %>%
   summarize(mean_LogCopies=mean(LogCopiespermLofMilk,na.rm=T),
             st_dev=sd(LogCopiespermLofMilk,na.rm=T),
             n_total=n())%>%
@@ -115,7 +115,7 @@ TotalBacterialDNA.summary <- TotalBacterialDNA %>%
 # Inoculated Milk Data
 TotalBacterialDNA.InnOnly <- TotalBacterialDNA %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
 TotalBacterialDNA.InnOnly %>%
-  group_by(VariableSampleType, VariableSpikeSet, VariableKit) %>%
+  group_by(VariableSpikeSet, VariableKit) %>%
   summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
             st_dev=sd(LogCopiespermLofMilk,na.rm=T),
             n_total=n())%>%
@@ -190,7 +190,7 @@ Bacillus.summary <- Bacillus %>%
 # Inoculated Milk Data
 Bacillus.InnOnly <- Bacillus %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
 Bacillus.InnOnly %>%
-  group_by(VariableSampleType, VariableSpikeSet, VariableKit) %>%
+  group_by(VariableSpikeSet, VariableKit) %>%
   summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
             st_dev=sd(LogCopiespermLofMilk,na.rm=T),
             n_total=n())%>%
@@ -265,7 +265,7 @@ Listeria.summary <- Listeria %>%
 # Inoculated Milk Data
 Listeria.InnOnly <- Listeria %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
 Listeria.InnOnly %>%
-  group_by(VariableSampleType, VariableSpikeSet, VariableKit) %>%
+  group_by(VariableSpikeSet, VariableKit) %>%
   summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
             st_dev=sd(LogCopiespermLofMilk,na.rm=T),
             n_total=n())%>%
@@ -339,7 +339,7 @@ Mycobacterium.summary <- Mycobacterium %>%
 # Inoculated Milk Data
 Mycobacterium.InnOnly <- Mycobacterium %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
 Mycobacterium.InnOnly %>%
-  group_by(VariableSampleType, VariableSpikeSet, VariableKit) %>%
+  group_by(VariableSpikeSet, VariableKit) %>%
   summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
             st_dev=sd(LogCopiespermLofMilk,na.rm=T),
             n_total=n())%>%
@@ -414,7 +414,7 @@ Salmonella.summary <- Salmonella %>%
 # Inoculated Milk Data
 Salmonella.InnOnly <- Salmonella %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
 Salmonella.InnOnly %>%
-  group_by(VariableSampleType, VariableSpikeSet, VariableKit) %>%
+  group_by(VariableSpikeSet, VariableKit) %>%
   summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
             st_dev=sd(LogCopiespermLofMilk,na.rm=T),
             n_total=n())%>%
