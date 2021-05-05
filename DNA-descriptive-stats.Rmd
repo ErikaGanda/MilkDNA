@@ -17,7 +17,13 @@ library(multcompView)
 
 #Read Data
 AllData <- read.table("Inputs/CleanDNAprepData1.18.19.txt", sep="\t",  fill = TRUE, header=TRUE)
+
+#Input 0.001 for missing values in a new variable so failures appear in the plots
+AllData$Dropouts <- AllData$LogCopiespermLofMilk
+AllData$Dropouts [is.na(AllData$Dropouts)] <- 0.0001
+
 SampleData <- AllData %>% filter(VariableSampleType!="Standard", VariableSampleType!="NP40InoculatedMilk")
+
 #dim (SampleData)
 ```
 
@@ -32,8 +38,8 @@ Bovine <- SampleData %>% filter(Assay=="Bovine DNA")
 
 Bovine.summary <- Bovine %>%
   group_by(VariableKit,VariableSampleType) %>%
-  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
-            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk),
+            st_dev=sd(LogCopiespermLofMilk),
             n_total=n())%>%
   data.frame()
 
@@ -41,11 +47,12 @@ Bovine.summary <- Bovine %>%
 Bovine.Inn.Ctrl <- Bovine %>% filter(VariableSampleType!="NP40InoculatedMilk")
 #dim(Bovine.Inn.Ctrl)
 
-Bovine.InnOnly <- Bovine %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
+Bovine.InnOnly <- Bovine %>% filter(VariableSampleType=="InoculatedMilk")
 Bovine.InnOnly %>%
   group_by(VariableSpikeSet, VariableKit) %>%
-  summarize(mean_LogCopies=mean(LogCopiespermLofMilk,na.rm=T),
+  summarize(mean=mean(LogCopiespermLofMilk,na.rm=T),
             st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_failures=sum(is.na(LogCopiespermLofMilk)),
             n_total=n())%>%
   data.frame()
 
@@ -55,6 +62,8 @@ Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","P
 
 
 Bovine.Inn.Ctrl$VariableSampleType <- factor(Bovine.Inn.Ctrl$VariableSampleType, levels=c('InoculatedMilk', 'UninoculatedMilk', 'NoTemplateControl', 'MockCommunity'))
+
+# Plotting all samples and controls
 
 ggplot(data=Bovine.Inn.Ctrl, aes(VariableKit,LogCopiespermLofMilk, color= VariableKit, shape=SpikeSet), show.legend = F)+
   scale_shape_discrete(solid=F) +
@@ -74,6 +83,8 @@ ggplot(data=Bovine.Inn.Ctrl, aes(VariableKit,LogCopiespermLofMilk, color= Variab
   theme(axis.text.x=element_text(angle=90,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
 
+# Plotting inoculated milk only
+
 ggplot(Bovine.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(SpikeSet))) +
   scale_shape_discrete(solid=F) +
   geom_point(aes(colour = VariableKit), size = 2, stroke = 1, position=position_jitterdodge(jitter.width=0, dodge.width = 1)) +
@@ -89,6 +100,8 @@ ggplot(Bovine.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(Spike
   theme(axis.line = element_line())+
   theme(axis.text.x=element_text(angle=25,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+# Plotting inoculated milk only by biological replicate
 
 ggplot(Bovine.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(SpikeSet))) +
   scale_shape_discrete(solid=F) +
@@ -106,6 +119,26 @@ ggplot(Bovine.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(Spike
   theme(axis.line = element_line())+
   theme(axis.text.x=element_text(angle=25,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+# Plotting failed reactions with values assigned as 0.001
+
+ggplot(Bovine.InnOnly, aes(VariableKit,Dropouts,shape = factor(SpikeSet))) +
+  scale_shape_discrete(solid=F) +
+  geom_jitter(aes(colour = VariableKit), size = 2, stroke = 1) +
+  facet_wrap(~SpikeSet)+
+  ylab ("Log10 Copies / mL of Milk")+
+  xlab ("Kit")+
+  ggtitle("Bovine DNA Copy Numbers - Inoculated Milk Only - Showing Failures")+
+  theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
 ```
 
 # Total Bacterial DNA
@@ -115,6 +148,7 @@ library(ggplot2)
 library(dplyr)
 library(emmeans)
 library(multcompView)
+library(wrangle)
 
 #Filter Subset from Sample Data
 TotalBacterialDNA <- SampleData %>% filter(Assay=="Total Bacterial DNA")
@@ -124,20 +158,20 @@ TotalBacterialDNA <- SampleData %>% filter(Assay=="Total Bacterial DNA")
 
 TotalBacterialDNA.summary <- TotalBacterialDNA %>%
   group_by(VariableKit,VariableSampleType) %>%
-  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
-            st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk),
+            st_dev=sd(LogCopiespermLofMilk),
             n_total=n())%>%
   data.frame()
 
 # Inoculated Milk Data
-TotalBacterialDNA.InnOnly <- TotalBacterialDNA %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
+TotalBacterialDNA.InnOnly <- TotalBacterialDNA %>% filter(VariableSampleType=="InoculatedMilk", )
 TotalBacterialDNA.InnOnly %>%
   group_by(VariableSpikeSet, VariableKit) %>%
-  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+  summarize(mean=mean(LogCopiespermLofMilk,na.rm=T),
             st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_failures=sum(is.na(LogCopiespermLofMilk)),
             n_total=n())%>%
   data.frame()
-
 # Total Bacteria: Milk Data and Controls
 Bacteria.Inn.Ctrl <- TotalBacterialDNA %>% filter(VariableSampleType!="NP40InoculatedMilk")
 #dim(Bacteria.Inn.Ctrl)
@@ -146,6 +180,8 @@ Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","P
 
 
 Bacteria.Inn.Ctrl$VariableSampleType <- factor(Bacteria.Inn.Ctrl$VariableSampleType, levels=c('InoculatedMilk', 'UninoculatedMilk', 'NoTemplateControl', 'MockCommunity'))
+
+# Plotting all samples and controls
 
 ggplot(data=Bacteria.Inn.Ctrl, aes(VariableKit,LogCopiespermLofMilk, color= VariableKit, shape=SpikeSet))+
   scale_shape_discrete(solid=F) +
@@ -165,6 +201,8 @@ ggplot(data=Bacteria.Inn.Ctrl, aes(VariableKit,LogCopiespermLofMilk, color= Vari
   theme(axis.text.x=element_text(angle=90,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
 
+# Plotting inoculated milk only
+
 ggplot(TotalBacterialDNA.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(SpikeSet))) +
   scale_shape_discrete(solid=F) +
   geom_point(aes(colour = VariableKit), size = 2, stroke = 1, position=position_jitterdodge(jitter.width=0, dodge.width = 1)) +
@@ -180,6 +218,8 @@ ggplot(TotalBacterialDNA.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = f
   theme(axis.line = element_line())+
   theme(axis.text.x=element_text(angle=25,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+# Plotting inoculated milk only by biological replicate
 
 ggplot(TotalBacterialDNA.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(SpikeSet))) +
   scale_shape_discrete(solid=F) +
@@ -198,7 +238,24 @@ ggplot(TotalBacterialDNA.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = f
   theme(axis.text.x=element_text(angle=25,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
 
+# Plotting failed reactions with values assigned as 0.001
 
+ggplot(TotalBacterialDNA.InnOnly, aes(VariableKit,Dropouts,shape = factor(SpikeSet))) +
+  scale_shape_discrete(solid=F) +
+  geom_jitter(aes(colour = VariableKit), size = 2, stroke = 1) +
+  facet_wrap(~SpikeSet)+
+  ylab ("Log10 Copies / mL of Milk")+
+  xlab ("Kit")+
+  ggtitle("Total Bacteria DNA Copy Numbers - Inoculated Milk Only - Showing Failures")+
+  theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
 ```
 
 # Bacillus wiedmannii Copy Numbers
@@ -223,11 +280,12 @@ Bacillus.summary <- Bacillus %>%
   data.frame()
 
 # Inoculated Milk Data
-Bacillus.InnOnly <- Bacillus %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
+Bacillus.InnOnly <- Bacillus %>% filter(VariableSampleType=="InoculatedMilk")
 Bacillus.InnOnly %>%
   group_by(VariableSpikeSet, VariableKit) %>%
-  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+  summarize(mean=mean(LogCopiespermLofMilk,na.rm=T),
             st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_failures=sum(is.na(LogCopiespermLofMilk)),
             n_total=n())%>%
   data.frame()
 
@@ -239,6 +297,8 @@ Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","P
 
 
 Bacillus.Inn.Ctrl$VariableSampleType <- factor(Bacillus.Inn.Ctrl$VariableSampleType, levels=c('InoculatedMilk', 'UninoculatedMilk', 'NoTemplateControl', 'MockCommunity'))
+
+# Plotting all samples and controls
 
 ggplot(data=Bacillus.Inn.Ctrl, aes(VariableKit,LogCopiespermLofMilk, color= VariableKit, shape=SpikeSet))+
   scale_shape_discrete(solid=F) +
@@ -258,6 +318,8 @@ ggplot(data=Bacillus.Inn.Ctrl, aes(VariableKit,LogCopiespermLofMilk, color= Vari
   theme(axis.text.x=element_text(angle=90,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
 
+# Plotting inoculated milk only
+
 ggplot(Bacillus.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(SpikeSet))) +
   scale_shape_discrete(solid=F) +
   geom_point(aes(colour = VariableKit), size = 2, stroke = 1, position=position_jitterdodge(jitter.width=0, dodge.width = 1)) +
@@ -274,6 +336,8 @@ ggplot(Bacillus.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(Spi
   theme(axis.text.x=element_text(angle=25,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
 
+# Plotting inoculated milk only by biological replicate
+
 ggplot(Bacillus.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(SpikeSet))) +
   scale_shape_discrete(solid=F) +
   geom_point(aes(colour = VariableKit), size = 2, stroke = 1, position=position_jitterdodge(jitter.width=0, dodge.width = 1)) +
@@ -281,6 +345,25 @@ ggplot(Bacillus.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(Spi
   ylab ("Log10 Copies / mL of Milk")+
   xlab ("Kit")+
   ggtitle("Bacillus DNA Copy Numbers - Inoculated Milk Only")+
+  theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+# Plotting failed reactions with values assigned as 0.001
+
+ggplot(Bacillus.InnOnly, aes(VariableKit,Dropouts,shape = factor(SpikeSet))) +
+  scale_shape_discrete(solid=F) +
+  geom_jitter(aes(colour = VariableKit), size = 2, stroke = 1) +
+  facet_wrap(~SpikeSet)+
+  ylab ("Log10 Copies / mL of Milk")+
+  xlab ("Kit")+
+  ggtitle("Bacillus DNA Copy Numbers - Inoculated Milk Only - Showing Failures")+
   theme_bw()+
   scale_color_manual(values=Colors)+
   theme(panel.grid.major = element_blank())+
@@ -314,11 +397,12 @@ Listeria.summary <- Listeria %>%
   data.frame()
 
 # Inoculated Milk Data
-Listeria.InnOnly <- Listeria %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
+Listeria.InnOnly <- Listeria %>% filter(VariableSampleType=="InoculatedMilk")
 Listeria.InnOnly %>%
   group_by(VariableSpikeSet, VariableKit) %>%
-  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+  summarize(mean=mean(LogCopiespermLofMilk,na.rm=T),
             st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_failures=sum(is.na(LogCopiespermLofMilk)),
             n_total=n())%>%
   data.frame()
 
@@ -330,6 +414,8 @@ Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","P
 
 
 Listeria.Inn.Ctrl$VariableSampleType <- factor(Listeria.Inn.Ctrl$VariableSampleType, levels=c('InoculatedMilk', 'UninoculatedMilk', 'NoTemplateControl', 'MockCommunity'))
+
+# Plotting all samples and controls
 
 ggplot(data=Listeria.Inn.Ctrl, aes(VariableKit,LogCopiespermLofMilk, color= VariableKit, shape=SpikeSet))+
   scale_shape_discrete(solid=F) +
@@ -349,6 +435,8 @@ ggplot(data=Listeria.Inn.Ctrl, aes(VariableKit,LogCopiespermLofMilk, color= Vari
   theme(axis.text.x=element_text(angle=90,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
 
+# Plotting inoculated milk only
+
 ggplot(Listeria.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(SpikeSet))) +
   scale_shape_discrete(solid=F) +
   geom_point(aes(colour = VariableKit), size = 2, stroke = 1, position=position_jitterdodge(jitter.width=0, dodge.width = 1)) +
@@ -365,9 +453,30 @@ ggplot(Listeria.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(Spi
   theme(axis.text.x=element_text(angle=25,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
 
+# Plotting inoculated milk only by biological replicate
+
 ggplot(Listeria.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(SpikeSet))) +
   scale_shape_discrete(solid=F) +
   geom_point(aes(colour = VariableKit), size = 2, stroke = 1, position=position_jitterdodge(jitter.width=0, dodge.width = 1)) +
+  facet_wrap(~SpikeSet)+
+  ylab ("Log10 Copies / mL of Milk")+
+  xlab ("Kit")+
+  ggtitle("Listeria DNA Copy Numbers - Inoculated Milk Only")+
+  theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+# Plotting failed reactions with values assigned as 0.001
+
+ggplot(Listeria.InnOnly, aes(VariableKit,Dropouts,shape = factor(SpikeSet))) +
+  scale_shape_discrete(solid=F) +
+  geom_jitter(aes(colour = VariableKit), size = 2, stroke = 1) +
   facet_wrap(~SpikeSet)+
   ylab ("Log10 Copies / mL of Milk")+
   xlab ("Kit")+
@@ -405,11 +514,12 @@ Mycobacterium.summary <- Mycobacterium %>%
   data.frame()
 
 # Inoculated Milk Data
-Mycobacterium.InnOnly <- Mycobacterium %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
+Mycobacterium.InnOnly <- Mycobacterium %>% filter(VariableSampleType=="InoculatedMilk")
 Mycobacterium.InnOnly %>%
   group_by(VariableSpikeSet, VariableKit) %>%
-  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+  summarize(mean=mean(LogCopiespermLofMilk,na.rm=T),
             st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_failures=sum(is.na(LogCopiespermLofMilk)),
             n_total=n())%>%
   data.frame()
 
@@ -421,6 +531,8 @@ Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","P
 
 
 Mycobacterium.Inn.Ctrl$VariableSampleType <- factor(Mycobacterium.Inn.Ctrl$VariableSampleType, levels=c('InoculatedMilk', 'UninoculatedMilk', 'NoTemplateControl', 'MockCommunity'))
+
+# Plotting all samples and controls
 
 ggplot(data=Mycobacterium.Inn.Ctrl, aes(VariableKit,LogCopiespermLofMilk, color= VariableKit, shape=SpikeSet))+
   scale_shape_discrete(solid=F) +
@@ -440,6 +552,8 @@ ggplot(data=Mycobacterium.Inn.Ctrl, aes(VariableKit,LogCopiespermLofMilk, color=
   theme(axis.text.x=element_text(angle=90,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
 
+# Plotting inoculated milk only
+
 ggplot(Mycobacterium.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(SpikeSet))) +
   scale_shape_discrete(solid=F) +
   geom_point(aes(colour = VariableKit), size = 2, stroke = 1, position=position_jitterdodge(jitter.width=0, dodge.width = 1)) +
@@ -456,6 +570,8 @@ ggplot(Mycobacterium.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = facto
   theme(axis.text.x=element_text(angle=25,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
 
+# Plotting inoculated milk only by biological replicate
+
 ggplot(Mycobacterium.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(SpikeSet))) +
   scale_shape_discrete(solid=F) +
   geom_point(aes(colour = VariableKit), size = 2, stroke = 1, position=position_jitterdodge(jitter.width=0, dodge.width = 1)) +
@@ -463,6 +579,25 @@ ggplot(Mycobacterium.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = facto
   ylab ("Log10 Copies / mL of Milk")+
   xlab ("Kit")+
   ggtitle("Mycobacterium DNA Copy Numbers - Inoculated Milk Only")+
+  theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+# Plotting failed reactions with values assigned as 0.001
+
+ggplot(Mycobacterium.InnOnly, aes(VariableKit,Dropouts,shape = factor(SpikeSet))) +
+  scale_shape_discrete(solid=F) +
+  geom_jitter(aes(colour = VariableKit), size = 2, stroke = 1) +
+  facet_wrap(~SpikeSet)+
+  ylab ("Log10 Copies / mL of Milk")+
+  xlab ("Kit")+
+  ggtitle("Mycobacterium DNA Copy Numbers - Inoculated Milk Only - Showing Failures")+
   theme_bw()+
   scale_color_manual(values=Colors)+
   theme(panel.grid.major = element_blank())+
@@ -497,11 +632,12 @@ Salmonella.summary <- Salmonella %>%
   data.frame()
  
 # Inoculated Milk Data
-Salmonella.InnOnly <- Salmonella %>% filter(VariableSampleType=="InoculatedMilk", LogCopiespermLofMilk>0.001)
+Salmonella.InnOnly <- Salmonella %>% filter(VariableSampleType=="InoculatedMilk", )
 Salmonella.InnOnly %>%
   group_by(VariableSpikeSet, VariableKit) %>%
-  summarize(mean_LogCopiespermLofMilk=mean(LogCopiespermLofMilk,na.rm=T),
+  summarize(mean=mean(LogCopiespermLofMilk,na.rm=T),
             st_dev=sd(LogCopiespermLofMilk,na.rm=T),
+            n_failures=sum(is.na(LogCopiespermLofMilk)),
             n_total=n())%>%
   data.frame()
 
@@ -513,6 +649,8 @@ Colors <- c("COREDNA" = "#4DB3C7", "EZFood"= "#85CA46", "Mastitis"= "#F49D00","P
 
 
 Salmonella.Inn.Ctrl$VariableSampleType <- factor(Salmonella.Inn.Ctrl$VariableSampleType, levels=c('InoculatedMilk', 'UninoculatedMilk', 'NoTemplateControl', 'MockCommunity'))
+
+# Plotting all samples and controls
 
 ggplot(data=Salmonella.Inn.Ctrl, aes(VariableKit,LogCopiespermLofMilk, color= VariableKit, shape=SpikeSet))+
   scale_shape_discrete(solid=F) +
@@ -532,6 +670,8 @@ ggplot(data=Salmonella.Inn.Ctrl, aes(VariableKit,LogCopiespermLofMilk, color= Va
   theme(axis.text.x=element_text(angle=90,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
 
+# Plotting inoculated milk only
+
 ggplot(Salmonella.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(SpikeSet))) +
   scale_shape_discrete(solid=F) +
   geom_point(aes(colour = VariableKit), size = 2, stroke = 1, position=position_jitterdodge(jitter.width=0, dodge.width = 1)) +
@@ -548,6 +688,8 @@ ggplot(Salmonella.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(S
   theme(axis.text.x=element_text(angle=25,vjust=0.5))+
   scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
 
+# Plotting inoculated milk only by biological replicate
+
 ggplot(Salmonella.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(SpikeSet))) +
   scale_shape_discrete(solid=F) +
   geom_point(aes(colour = VariableKit), size = 2, stroke = 1, position=position_jitterdodge(jitter.width=0, dodge.width = 1)) +
@@ -555,6 +697,25 @@ ggplot(Salmonella.InnOnly, aes(VariableKit,LogCopiespermLofMilk,shape = factor(S
   ylab ("Log10 Copies / mL of Milk")+
   xlab ("Kit")+
   ggtitle("Salmonella DNA Copy Numbers - Inoculated Milk Only")+
+  theme_bw()+
+  scale_color_manual(values=Colors)+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank())+
+  theme(panel.border = element_blank())+
+  theme(axis.line = element_line())+
+  theme(axis.text.x=element_text(angle=25,vjust=0.5))+
+  scale_x_discrete(limits=c("COREDNA", "Mastitis", "EZFood",  "Pfood", "PSoilP", "PviralDNA", "ZymoDNA"))
+
+# Plotting failed reactions with values assigned as 0.001
+
+ggplot(Salmonella.InnOnly, aes(VariableKit,Dropouts,shape = factor(SpikeSet))) +
+  scale_shape_discrete(solid=F) +
+  geom_jitter(aes(colour = VariableKit), size = 2, stroke = 1) +
+  facet_wrap(~SpikeSet)+
+  ylab ("Log10 Copies / mL of Milk")+
+  xlab ("Kit")+
+  ggtitle("Salmonella DNA Copy Numbers - Inoculated Milk Only - Showing Failures")+
   theme_bw()+
   scale_color_manual(values=Colors)+
   theme(panel.grid.major = element_blank())+
