@@ -108,18 +108,23 @@ ggplot(data=Bovine,
 ```
 
 ```{r}
+# ERIKA: I guess this is needed
+Bovine$Category <- ifelse(Bovine$Category == "20uM", "TwentyuM", Bovine$Category)
+Bovine <- mutate(Bovine, Category = factor(Category))
+
 # Statistical Analysis
-m_Bovine.LogCopiespermLofMilk <- lm( LogCopiespermLofMilk ~ Category*BioRep, data=Bovine )
+m_Bovine.LogCopiespermLofMilk <- lm( LogCopiespermLofMilk ~ Category*BioRep -1, data=Bovine ) ## ERIKA: I am guessing you want to
+                                                                                              ## remove the intercept (-1)
 summary(m_Bovine.LogCopiespermLofMilk)
 
-AIC (m_Bovine.LogCopiespermLofMilk)
+AIC(m_Bovine.LogCopiespermLofMilk) 
 
 # Model Fit Plots
 
 plot(x=predict(m_Bovine.LogCopiespermLofMilk),y=resid(m_Bovine.LogCopiespermLofMilk))
   
-  # using ggplot2
-Colors <- c("20uM" = "#d7191c", "Molz"= "#a1d99b", "NEB"= "#feb24c","UTC"= "#595959", "Qia"="#2c7bb6")
+  # using ggplot2   
+Colors <- c("TwentyuM" = "#d7191c", "Molz"= "#a1d99b", "NEB"= "#feb24c","UTC"= "#595959", "Qia"="#2c7bb6")
 ggplot(m_Bovine.LogCopiespermLofMilk, aes(x=predict(m_Bovine.LogCopiespermLofMilk), y=resid(m_Bovine.LogCopiespermLofMilk), color=Category)) +
   geom_point()+
   theme_bw()+
@@ -142,37 +147,30 @@ summary(m_Bovine.LogCopiespermLofMilk)
 #All residuals are < 1. 
 ```
 
-
 ```{r}
-# JDS HELP
-# 
-# # Check Tukey-adjusted pairwise comparison of kit estimates
-# # Now summarise results
-# comps <- comps %>%
-#   map(summary(m_Bovine.LogCopiespermLofMilk, test=univariate()))
-# 
-# 
-# ## Comps is then the key thing to use and investigate for reports.
-# ## Correct for multiple hypothesis testing between the assays.
-# pvalues_adjusted <- comps %>%
-#   map("test") %>%
-#   map("pvalues") %>%
-#   map(~data.frame(pvalue = .x)) %>%
-#   bind_rows(.id="assay") %>%
-#   mutate(pval = p.adjust(pvalue, method="bonferroni")) %>%
-#   split(.$assay) %>%
-#   map(~pull(.x, pval))
-# 
-# for (s in names(pvalues_adjusted)) {
-#   comps[[s]]$test$pvalues <- pvalues_adjusted[[s]]
-# }
-# 
-# ## Now write results to file
-# sink(file="multiple_comparisons.txt")
-# # All Pvalues have been globally adjusted using Bonferroni
-# comps
-# sink()
+## JDS Help
+## Create vector of pairwise comparisons to test 
+comparisons <- unique(Bovine$Category)
+comparisons <- comparisons[which(comparisons != "UTC")]
+comparisons <- t(combn(comparisons, 2))
+comparisons <- paste(comparisons[,1], comparisons[,2], sep=" - ")
+comparisons <- paste0(comparisons, " == 0")
 
+## The multcomp package needs some updating
+## This is all to deal with a poorly designed interface and internal logic in multcomp
+tmp_vcov <- vcov(m_Bovine.LogCopiespermLofMilk)
+tmp_vcov[is.na(tmp_vcov)] <- 1e-8 # this value doesn't matter
+tmp_coef <- coef(m_Bovine.LogCopiespermLofMilk)
+tmp_coef[is.na(tmp_coef)] <- 1e-8 # this value doesn't matter
+comps <- glht(m_Bovine.LogCopiespermLofMilk, mcp(Category = comparisons),
+              vcov.=tmp_vcov, coef.=tmp_coef)
+
+## Now summarise results - using manual p-value correction
+comps <- summary(comps, test=univariate())
+comps$test$pvalues <- p.adjust(comps$test$pvalues, method="bonferroni")
+
+## Now view results
+print(comps)
 ```
 
 

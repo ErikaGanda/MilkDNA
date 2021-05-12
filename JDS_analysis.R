@@ -89,7 +89,7 @@ lms <- dat %>%
 dat %>%
   map(~.x[,c("VariableKit", "SpikeSet")] %>% table())
 
-# We are going to have to Drop PviralDNA on hte Listeria Monocytogenes assay.
+# We are going to have to Drop PviralDNA on the Listeria Monocytogenes assay.
 comparisons <-  c("Mastitis - COREDNA",
                   "Pfood - COREDNA",
                   "PSoilP - COREDNA",
@@ -117,7 +117,7 @@ comps <- lms[-3] %>%
 # Handle case 3 specially due to missingness
 compl <- comparisons
 tmp <- grep("viral", comparisons)
-compl <- compl[-tmp] # TMP COMMENT 
+compl <- compl[-tmp] 
 rm(tmp)
 #hacking multcomp to make it work - this is a bug in their error checking
 tmp_vcov <- vcov(lms[[3]])
