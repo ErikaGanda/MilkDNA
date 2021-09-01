@@ -1,6 +1,6 @@
 # MilkDNA
 Analysis and data supporting:  
-["DNA extraction and host depletion methods significantly impact and potentially bias bacterial detection in a biological fluid"](https://www.biorxiv.org/content/10.1101/2020.08.21.262337v1) - Under review
+["DNA Extraction and Host Depletion Methods Significantly Impact and Potentially Bias Bacterial Detection in a Biological Fluid"](https://journals.asm.org/doi/10.1128/mSystems.00619-21) - Published 15 June 2021
 
 The following scripts are as described below. Each input and output data set is indicated in the respective \*.Rmd files. Final output can be found in the respective HTML files.
 
